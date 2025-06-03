@@ -53,8 +53,11 @@ let p5canvas = null;
 function setup() {
   p5canvas = createCanvas(320, 240);
   p5canvas.parent('#canvas');
+  //キャンバス反転
+  p5canvas.style('transform', 'scaleX(-1)'); // 水平方向に反転
 
-  // When gestures are found, the following function is called. The detection results are stored in results.
+
+ // When gestures are found, the following function is called. The detection results are stored in results.
   let lastChar = "";
   let lastCharTime = millis();
 
