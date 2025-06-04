@@ -1,33 +1,22 @@
-// ジェスチャーの種類
-// 👍(Thumb_Up), 👎(Thumb_Down), ✌️(Victory), 
-// ☝️(Pointng_Up), ✊(Closed_Fist), 👋(Open_Palm), 
-// 🤟(ILoveYou)
-function getCode(left_gesture, right_gesture) {
-  let code_array = {
-    "Thumb_Up": 1,
-    "Thumb_Down": 2,
-    "Victory": 3,
-    "Pointing_Up": 4,
-    "Closed_Fist": 5,
-    "Open_Palm": 6,
-  }
-  let left_code = code_array[left_gesture];
-  let right_code = code_array[right_gesture];
-  // left_codeとright_codeを文字として結合
-  let code = String(left_code) + String(right_code);
-  return code;
+function gestureToChar(label){
+    const base = label.replace(/_(open|close)$/i, "");  // サフィックス除去
+  const map = {
+    // --- 学習済ラベルをすべて列挙 ---
+    A: "a", B: "b", C: "c", D: "d", E: "e", F: "f",
+    G: "g", H: "h", I: "i", J: "j", K: "k", L: "l",
+    M: "m", N: "n", O: "o", P: "p", Q: "q", R: "r",
+    S: "s", T: "t", U: "u", V: "v", W: "w", X: "x",
+    Y: "y", Z: "z",
+
+    Ealt: "e", Oalt: "o", Talt: "t",   // ← ショートカット
+    Back: "backspace",
+    Space: " ",
+  };
+
+  return map[base] ?? "";   // 未定義なら空文字を返す
 }
 
-function getCharacter(code) {
-  const codeToChar = {
-    "11": "a", "12": "b", "13": "c", "14": "d", "15": "e", "16": "f",
-    "21": "g", "22": "h", "23": "i", "24": "j", "25": "k", "26": "l",
-    "31": "m", "32": "n", "33": "o", "34": "p", "35": "q", "36": "r",
-    "41": "s", "42": "t", "43": "u", "44": "v", "45": "w", "46": "x",
-    "51": "y", "52": "z", "53": " ", "54": "backspace"
-  };
-  return codeToChar[code] || "";
-}
+
 
 // 入力サンプル文章 
 let sample_texts = [
@@ -54,50 +43,54 @@ function setup() {
   p5canvas = createCanvas(320, 240);
   p5canvas.parent('#canvas');
   //キャンバス反転
-  p5canvas.style('transform', 'scaleX(-1)'); // 水平方向に反転
+  // p5canvas.style('transform', 'scaleX(-1)'); // 水平方向に反転
 
 
  // When gestures are found, the following function is called. The detection results are stored in results.
   let lastChar = "";
   let lastCharTime = millis();
+  const HOLD_MSEC = 700; // 1秒以上同じ文字が続いた場合の処理
 
-  gotGestures = function (results) {
+ gotGestures = function (results) {
     gestures_results = results;
 
-    if (results.gestures.length == 2) {
-      if (game_mode.now == "ready" && game_mode.previous == "notready") {
-        // ゲーム開始前の状態から、カメラが起動した後の状態に変化した場合
-        game_mode.previous = game_mode.now;
-        game_mode.now = "playing";
-        document.querySelector('input').value = ""; // 入力欄をクリア
-        game_start_time = millis(); // ゲーム開始時間を記録
-      }
-      let left_gesture;
-      let right_gesture;
-      if (results.handedness[0][0].categoryName == "Left") {
-        left_gesture = results.gestures[0][0].categoryName;
-        right_gesture = results.gestures[1][0].categoryName;
-      } else {
-        left_gesture = results.gestures[1][0].categoryName;
-        right_gesture = results.gestures[0][0].categoryName;
-      }
-      let code = getCode(left_gesture, right_gesture);
-      let c = getCharacter(code);
+    // ---------- 安全チェック ----------
+    if (!results || !results.gestures || results.gestures.length === 0) return;
 
-      let now = millis();
-      if (c === lastChar) {
-        if (now - lastCharTime > 1000) {
-          // 1秒以上cが同じ値である場合の処理
-          typeChar(c);
-          lastCharTime = now;
-        }
-      } else {
-        lastChar = c;
-        lastCharTime = now;
-      }
+    // ---------- ゲーム開始（ready → playing） ----------
+    if (game_mode.now === "ready" && game_mode.previous === "notready") {
+      game_mode.previous = game_mode.now;
+      game_mode.now      = "playing";
+      document.querySelector("input").value = ""; // 入力欄クリア
+      game_start_time = millis();                 // スタート時刻保存
     }
 
-  }
+    // ---------- 1. もっとも確度の高い “*_open” ラベルを取得 ----------
+    let signLabel = "";
+    for (const g of results.gestures) {
+      const name = g[0].categoryName;             // 例: "A_open"
+      if (name.endsWith("_open")) {               // open優先
+        signLabel = name;
+        break;
+      }
+    }
+    if (signLabel === "") signLabel = results.gestures[0][0].categoryName;
+
+    // ---------- 2. ラベル名 → 実際に入力する文字へ変換 ----------
+    const c = gestureToChar(signLabel);           // 例: "A_open" → "a"
+
+    // ---------- 3. 一定時間ホールドで確定入力 ----------
+    const now = millis();
+    if (c === lastChar) {
+      if (now - lastCharTime > HOLD_MSEC) {       // HOLD_MSEC ms 保持
+        typeChar(c);                              // 既存の文字入力関数
+        lastCharTime = now;
+      }
+    } else {
+      lastChar     = c;                           // 新しいジェスチャ検出
+      lastCharTime = now;
+    }
+  };
 }
 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
