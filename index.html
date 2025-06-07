@@ -2,7 +2,10 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>MediaPipe Face Hand Landmarker</title>
         <link rel="icon" href="images/Gesture-icon.png">
     <link rel="apple-touch-icon" href="images/Gesture-icon-180.png">
@@ -12,63 +15,63 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-gray-800 text-white">
-    <div class="container mx-auto p-4 flex flex-col items-center">
+    <div class="container mx-auto p-2 sm:p-4 flex flex-col items-center">
         
-        <h1 class="text-4xl font-bold mb-2">Gesture Typing</h1>
-        <p class="text-sm text-gray-400 mb-4">
+        <h1 class="text-2xl sm:text-4xl font-bold mb-2 text-center">Gesture Typing</h1>
+        <p class="text-xs sm:text-sm text-gray-400 mb-4 text-center">
             Using MediaPipe and p5.js with a custom model
         </p>
     
         <!-- ▼▼▼【修正】ウェブカメラとテキストUIを横並びで配置 ▼▼▼ -->
-        <div class="flex items-start gap-4 mb-4">
-            <main id="canvas-container" class="relative">
+        <div class="flex flex-col lg:flex-row items-center lg:items-start gap-4 mb-4 w-full max-w-6xl">
+            <main id="canvas-container" class="relative w-full max-w-md sm:max-w-lg lg:max-w-xl">
                 <!-- p5.jsがここにCanvasを生成します -->
                 
                 <!-- ローディングとスタートボタン用のオーバーレイ -->
-                <div id="ui-overlay" class="absolute inset-0 bg-gray-700 bg-opacity-80 flex flex-col justify-center items-center text-center p-4">
+                <div id="ui-overlay" class="absolute inset-0 bg-gray-700 bg-opacity-80 flex flex-col justify-center items-center text-center p-2 sm:p-4">
                     <div id="loading-ui">
-                        <p id="loading-message" class="text-lg mb-2">モデルを読み込んでいます...</p>
+                        <p id="loading-message" class="text-sm sm:text-lg mb-2">モデルを読み込んでいます...</p>
                         <div class="loader"></div>
                     </div>
                     <div id="start-ui" class="hidden">
-                        <p id="start-message" class="text-lg mb-4">準備完了です</p>
-                        <button id="startButton" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg text-xl transition-colors">
+                        <p id="start-message" class="text-sm sm:text-lg mb-4">準備完了です</p>
+                        <button id="startButton" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 sm:py-3 sm:px-8 rounded-lg text-lg sm:text-xl transition-colors">
                             Start Challenge
                         </button>
                     </div>
                     <div id="error-ui" class="hidden text-red-400">
                         <p>エラーが発生しました。</p>
-                        <p id="error-message" class="text-sm"></p>
+                        <p id="error-message" class="text-xs sm:text-sm"></p>
                     </div>
                 </div>
             </main>
 
             <!-- 右側：文字入力状況表示UI -->
-            <div id="character-display" class="bg-gray-200 bg-opacity-90 rounded-lg p-4 w-32 hidden">
-                <div id="char-list" class="flex flex-col items-center space-y-2">
+            <div id="character-display" class="bg-gray-200 bg-opacity-90 rounded-lg p-2 sm:p-4 w-full max-w-xs lg:w-32 hidden">
+                <div id="char-list" class="flex flex-row lg:flex-col justify-center lg:justify-start items-center space-x-2 lg:space-x-0 lg:space-y-2">
                     <!-- 文字がJavaScriptで動的に追加されます -->
                 </div>
             </div>
         </div>
     
         <!-- ▼▼▼ ゲーム用のUI要素 (初期状態では非表示) ▼▼▼ -->
-        <div id="game-ui" class="w-full max-w-2xl bg-gray-700 p-4 rounded-lg shadow-lg hidden">
-            <div class="bg-gray-800 rounded-md p-3 mb-3 text-center">
-                <h5 class="font-semibold">Target Text:</h5>
-                <p id="message" class="text-2xl font-mono tracking-wider">Press the start button to begin</p>
+        <div id="game-ui" class="w-full max-w-4xl bg-gray-700 p-3 sm:p-4 rounded-lg shadow-lg hidden">
+            <div class="bg-gray-800 rounded-md p-2 sm:p-3 mb-3 text-center">
+                <h5 class="font-semibold text-sm sm:text-base">Target Text:</h5>
+                <p id="message" class="text-lg sm:text-2xl font-mono tracking-wider break-words">Press the start button to begin</p>
             </div>
             <div>
-                <input type="text" id="typing-input" class="w-full p-3 bg-gray-900 text-white rounded-md text-2xl font-mono tracking-wider text-center" readonly>
+                <input type="text" id="typing-input" class="w-full p-2 sm:p-3 bg-gray-900 text-white rounded-md text-lg sm:text-2xl font-mono tracking-wider text-center" readonly>
             </div>
             
             <!-- ▼▼▼【ここから追加】エラーメッセージ表示エリア ▼▼▼ -->
-            <div id="error-message-display" class="mt-3 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md text-center hidden">
-                <div class="font-bold">入力エラー</div>
-                <div id="error-text" class="text-sm mt-1">間違った文字が入力されました。削除ジェスチャー (5,5) で削除してください。</div>
+            <div id="error-message-display" class="mt-3 p-2 sm:p-3 bg-red-100 border border-red-400 text-red-700 rounded-md text-center hidden">
+                <div class="font-bold text-sm sm:text-base">入力エラー</div>
+                <div id="error-text" class="text-xs sm:text-sm mt-1">間違った文字が入力されました。削除ジェスチャー (5,5) で削除してください。</div>
             </div>
             <!-- ▲▲▲【ここまで追加】▲▲▲ -->
             
-            <button id="restartButton" class="mt-4 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
+            <button id="restartButton" class="mt-4 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded text-sm sm:text-base">
                 Restart
             </button>
         </div>

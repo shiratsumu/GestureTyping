@@ -239,7 +239,17 @@ const sketch = (p) => {
 
     // p5.jsの初期化関数
     p.setup = async () => {
-        p.createCanvas(640, 480);
+        // レスポンシブなキャンバスサイズを計算
+        let canvasWidth = Math.min(window.innerWidth - 32, 640); // 左右の余白を考慮
+        let canvasHeight = (canvasWidth * 3) / 4; // 4:3のアスペクト比を維持
+        
+        // スマホサイズでの調整
+        if (window.innerWidth <= 640) {
+            canvasWidth = Math.min(window.innerWidth - 32, 480);
+            canvasHeight = (canvasWidth * 3) / 4;
+        }
+        
+        p.createCanvas(canvasWidth, canvasHeight);
         
         // HTMLのvideo要素を作成（非表示）
         cam = p.createCapture(p.VIDEO);
@@ -329,6 +339,26 @@ const sketch = (p) => {
         };
         // ▲▲▲【ここまで追加】▲▲▲
 
+    };
+    
+    // ウィンドウリサイズ時の処理
+    p.windowResized = () => {
+        // レスポンシブなキャンバスサイズを再計算
+        let canvasWidth = Math.min(window.innerWidth - 32, 640);
+        let canvasHeight = (canvasWidth * 3) / 4;
+        
+        // スマホサイズでの調整
+        if (window.innerWidth <= 640) {
+            canvasWidth = Math.min(window.innerWidth - 32, 480);
+            canvasHeight = (canvasWidth * 3) / 4;
+        }
+        
+        p.resizeCanvas(canvasWidth, canvasHeight);
+        
+        // カメラサイズも調整
+        if (cam) {
+            cam.size(p.width, p.height);
+        }
     };
 
     // p5.jsの毎フレーム描画関数

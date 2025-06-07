@@ -1,5 +1,4 @@
-
-    body {
+body {
         font-family: 'Inter', sans-serif;
         display: flex;
         flex-direction: column;
@@ -10,12 +9,26 @@
         background-color: #1a1a1a;
         color: #e0e0e0;
         margin: 0;
-        padding-top: 2rem; /* 上部に少し余白 */
+        padding-top: 1rem; /* スマホでは少なめの余白 */
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
         box-sizing: border-box;
     }
+    
+    /* スマホ以外の画面サイズでの余白調整 */
+    @media (min-width: 640px) {
+        body {
+            padding-top: 2rem;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+    }
+    
     main {
-        width: 640px;
-        height: 480px;
+        width: 100%;
+        max-width: 640px;
+        height: auto;
+        aspect-ratio: 4/3; /* アスペクト比を維持 */
         border-radius: 0.5rem;
         overflow: hidden;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
@@ -26,14 +39,25 @@
         width: 100%;
         height: 100%;
     }
+    
     /* p5.jsがCanvasを生成するコンテナ */
     #canvas-container {
-        width: 640px;
-        height: 480px;
+        width: 100%;
+        max-width: 640px;
+        height: auto;
+        aspect-ratio: 4/3; /* アスペクト比を維持 */
         border-radius: 0.5rem;
         overflow: hidden;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
         background-color: #333; /* 読み込み中の背景色 */
+    }
+    
+    /* スマホでのcanvasコンテナサイズ調整 */
+    @media (max-width: 640px) {
+        #canvas-container {
+            width: calc(100vw - 2rem);
+            max-width: 480px;
+        }
     }
 
     .container {
@@ -45,12 +69,21 @@
         overflow: hidden;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
     }
+    
     #webcam {
         display: block;
         width: 100%;
         height: auto;
         border-radius: 0.5rem;
         transform: scaleX(-1);
+    }
+    
+    /* スマホでのwebcam調整 */
+    @media (max-width: 640px) {
+        .container {
+            width: calc(100vw - 2rem);
+            max-width: 480px;
+        }
     }
     #output_canvas {
         position: absolute;
@@ -102,12 +135,104 @@
     }
     #mouthStatusDisplay {
         position: fixed; /* 画面左上に固定 */
-        top: 20px;
-        left: 20px;
+        top: 10px;
+        left: 10px;
         background-color: rgba(0,0,0,0.7);
         color: white;
-        padding: 10px 15px;
+        padding: 8px 12px;
         border-radius: 5px;
-        font-size: 1.2em;
+        font-size: 1em;
         z-index: 100; /* 他の要素より手前に表示 */
+    }
+    
+    /* デスクトップでの表示調整 */
+    @media (min-width: 640px) {
+        #mouthStatusDisplay {
+            top: 20px;
+            left: 20px;
+            padding: 10px 15px;
+            font-size: 1.2em;
+        }
+    }
+    
+    /* タッチデバイス用のタップ領域拡大 */
+    @media (hover: none) {
+        button {
+            min-height: 44px; /* タッチターゲットサイズ */
+            min-width: 44px;
+        }
+    }
+
+    /* レスポンシブデザイン用のメディアクエリ */
+
+    /* スマートフォン（縦向き）*/
+    @media (max-width: 480px) {
+        body {
+            padding-top: 0.5rem;
+            padding-left: 0.25rem;
+            padding-right: 0.25rem;
+        }
+        
+        #canvas-container {
+            width: calc(100vw - 1rem);
+            max-width: 320px;
+        }
+        
+        .loader {
+            width: 20px;
+            height: 20px;
+        }
+        
+        /* フォントサイズの調整 */
+        #enableWebcamButton {
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+        
+        #status {
+            font-size: 0.8rem;
+        }
+    }
+
+    /* タブレット */
+    @media (min-width: 481px) and (max-width: 768px) {
+        #canvas-container {
+            width: calc(100vw - 3rem);
+            max-width: 500px;
+        }
+    }
+
+    /* デスクトップ */
+    @media (min-width: 769px) {
+        #canvas-container {
+            width: 640px;
+            height: 480px;
+        }
+    }
+
+    /* 横向きスマートフォン用の調整 */
+    @media (max-width: 768px) and (orientation: landscape) {
+        body {
+            padding-top: 0.5rem;
+        }
+        
+        #canvas-container {
+            width: calc(100vh - 2rem);
+            max-width: 500px;
+        }
+    }
+
+    /* 高解像度ディスプレイ対応 */
+    @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+        canvas {
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+        }
+    }
+
+    /* ホバー可能なデバイス（主にデスクトップ）用のホバー効果 */
+    @media (hover: hover) {
+        #enableWebcamButton:hover {
+            background-color: #2563eb;
+        }
     }
