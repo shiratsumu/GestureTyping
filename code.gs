@@ -13,7 +13,7 @@ function doPost(e) {
   if (idx === -1) {
     // 新規
     sh.appendRow([new Date(), score, id]);
-  } else if (score > rows[idx][COL_SCORE - 1]) {
+  } else if (score < rows[idx][COL_SCORE - 1]) {
     // 高スコア更新
     sh.getRange(idx + 2, COL_TIMESTAMP, 1, 2)
       .setValues([[new Date(), score]]);
@@ -28,7 +28,7 @@ function doGet(e) {
   const rows  = sh.getRange(2, 1, sh.getLastRow() - 1, 3).getValues();
 
   const sorted = rows
-    .sort((a, b) => b[COL_SCORE - 1] - a[COL_SCORE - 1])
+    .sort((a, b) => a[COL_SCORE - 1] - b[COL_SCORE - 1])
     .slice(0, limit)
     .map(r => ({ time: r[0], score: r[1], id: r[2] }));
   return json(sorted);
