@@ -276,7 +276,7 @@ const sketch = (p) => {
         const startButton = document.querySelector('#startButton');
         
         try {
-            await initializeLandmarkers();
+            await initializeLandmarkers();            
             // 成功した場合
             loadingUI.classList.add('hidden');
             startUI.classList.remove('hidden');

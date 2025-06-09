@@ -39,7 +39,14 @@ export async function submitScore(score) {
 export async function loadRanking(limit = 10) {
   try {
     const res = await fetch(`${CORS_PROXY}${GAS_URL}?limit=${limit}`);
-    const { rows, total, player } = await res.json();
+    const text = await res.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (parseErr) {
+      throw new Error('Invalid JSON response');
+    }
+    const { rows, total, player } = data;
     rows.sort((a, b) => a.score - b.score);
     renderRanking(rows);
     updateRecordMessage(player, total);
