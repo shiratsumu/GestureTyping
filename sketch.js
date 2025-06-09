@@ -22,7 +22,7 @@ const sketch = (p) => {
             "3": 3,
             "4": 4,
             "5": 5,
-            "6": 6,
+            "6": 0,
         }
         let left_code = code_array[left_gesture] || 0; // left_gestureがcode_arrayにない場合は0を使用
         let right_code = code_array[right_gesture] || 0; // right_gestureがcode_arrayにない場合は0を使用
@@ -32,11 +32,11 @@ const sketch = (p) => {
 
     function getCharacter(code) {
         const codeToChar = {
-            "11": "a", "12": "b", "13": "c", "14": "d", "15": "e", "16": "f",
-            "21": "g", "22": "h", "23": "i", "24": "j", "25": "k", "26": "l",
-            "31": "m", "32": "n", "33": "o", "34": "p", "35": "q", "36": "r",
-            "41": "s", "42": "t", "43": "u", "44": "v", "45": "w", "46": "x",
-            "51": "y", "52": "z", "66": " ", "55": "backspace"
+            "11": "a", "12": "b", "13": "c", "14": "d", "15": "e", "10": "f",
+            "21": "g", "22": "h", "23": "i", "24": "j", "25": "k", "20": "l",
+            "31": "m", "32": "n", "33": "o", "34": "p", "35": "q", "30": "r",
+            "41": "s", "42": "t", "43": "u", "44": "v", "45": "w", "40": "x",
+            "51": "y", "52": "z", "00": " ", "55": "backspace"
         };
         return codeToChar[code] || "";
     }
@@ -77,6 +77,7 @@ const sketch = (p) => {
     let currentTargetText = ""; // 現在のターゲットテキスト
     let currentInputIndex = 0;  // 現在の入力位置
     let isErrorState = false;   // エラー状態フラグ
+    let errorCharCount = 0; // 間違えた文字の数
     // ▲▲▲【ここまで追加】▲▲▲
 
 
@@ -121,9 +122,19 @@ const sketch = (p) => {
         }
         
         // 入力済み文字数を取得
-        const input = document.querySelector('#typing-input');
-        if (input) {
-            currentInputIndex = input.value.length;
+        const inputDisplayDiv = document.querySelector('#typing-input');
+        if (inputDisplayDiv) {
+            currentInputIndex = 0; // 初期化
+            const childNodes = inputDisplayDiv.childNodes;
+            for (let i = 0; i < childNodes.length; i++) {
+                const node = childNodes[i];
+                // 正しく入力された文字（エラークラスが付与されていないSPAN要素）のみをカウント
+                if (node.nodeName === "SPAN" && node.classList && !node.classList.contains('error-char')) {
+                    currentInputIndex += node.textContent.length;
+                }
+            }
+        } else {
+            currentInputIndex = 0; // 要素が見つからない場合のフォールバック
         }
         
         // UIをクリア
@@ -199,11 +210,11 @@ const sketch = (p) => {
         // 文字からコードへの逆引き
         const charToCode = {};
         const codeToChar = {
-            "11": "a", "12": "b", "13": "c", "14": "d", "15": "e", "16": "f",
-            "21": "g", "22": "h", "23": "i", "24": "j", "25": "k", "26": "l",
-            "31": "m", "32": "n", "33": "o", "34": "p", "35": "q", "36": "r",
-            "41": "s", "42": "t", "43": "u", "44": "v", "45": "w", "46": "x",
-            "51": "y", "52": "z", "66": " ", "55": "backspace"
+            "11": "a", "12": "b", "13": "c", "14": "d", "15": "e", "10": "f",
+            "21": "g", "22": "h", "23": "i", "24": "j", "25": "k", "20": "l",
+            "31": "m", "32": "n", "33": "o", "34": "p", "35": "q", "30": "r",
+            "41": "s", "42": "t", "43": "u", "44": "v", "45": "w", "40": "x",
+            "51": "y", "52": "z", "00": " ", "55": "backspace"
         };
         
         // 逆引きマップを作成
@@ -397,7 +408,7 @@ const sketch = (p) => {
         // ▲▲▲【ここまで追加】▲▲▲
 
         // ▼▼▼【ここに追加】毎フレーム、ログ出力関数を呼び出します ▼▼▼
-        logDebugInfo();
+        // logDebugInfo(); // デバッグ用のためコメントアウト
     };
 
     //=================
@@ -504,9 +515,16 @@ const sketch = (p) => {
                 // ジェスチャー名を描画
                 if (gestureResults.gestures[i] && gestureResults.gestures[i].length > 0) {
                     const gesture = gestureResults.gestures[i][0];
-                    const categoryName = gesture.categoryName;
+                    let categoryName = gesture.categoryName; // Use let to allow modification
                     const score = gesture.score.toFixed(2);
                     const handPos = landmarks[0]; // 手の根元の位置
+
+                    // ▼▼▼【ここから追加】categoryNameが"6"の場合、"0"として表示 ▼▼▼
+                    let displayCategoryName = categoryName;
+                    if (categoryName === "6") {
+                        displayCategoryName = "0";
+                    }
+                    // ▲▲▲【ここまで追加】▲▲▲
 
                     p.fill(255);
                     p.stroke(0);
@@ -514,7 +532,9 @@ const sketch = (p) => {
                     p.textSize(24);
                     p.textAlign(p.CENTER, p.CENTER);
                     // x座標を反転
-                    p.text(`${categoryName} (${score})`, p.width - handPos.x * p.width, handPos.y * p.height - 30);
+                    // ▼▼▼【ここから修正】表示するcategoryNameを変更 ▼▼▼
+                    p.text(`${displayCategoryName} (${score})`, p.width - handPos.x * p.width, handPos.y * p.height - 30);
+                    // ▲▲▲【ここまで修正】▲▲▲
                 }
             }
             // ▲▲▲ これで描画処理は完了です ▲▲▲
@@ -621,6 +641,13 @@ const sketch = (p) => {
 
     // ====import from GestureTyping(we can not edit)====
     function typeChar(c) {
+        // ▼▼▼【ここから追加】ゲーム終了後は入力を受け付けない ▼▼▼
+        if (game_mode.now === "finished") {
+            console.log("Game finished. No more input accepted.");
+            return;
+        }
+        // ▲▲▲【ここまで追加】▲▲▲
+
         // ▼▼▼【ここから修正】displayedCharの更新処理を削除 ▼▼▼
         // displayedChar = c;        // 表示する文字をセット ← この行を削除
         // ▲▲▲【ここまで修正】▲▲▲
@@ -631,68 +658,107 @@ const sketch = (p) => {
         // inputにフォーカスする
         // ▼▼▼【修正点 3/3】HTML要素が存在しない場合のエラーを防ぐ修正 ▼▼▼
         // HTML側にinputやmessage要素がない場合でもエラーで停止しないようにします。
-        const input = document.querySelector('input');
+        // const input = document.querySelector('input'); // divに変更したためコメントアウト
+        const inputDisplay = document.querySelector('#typing-input'); // div要素を取得
         const messageElem = document.querySelector('#message');
-        if (!input || !messageElem) {
-            console.log(`typeChar called, but <input> or #message not found in HTML. Character: ${c}`);
+        if (!inputDisplay || !messageElem) {
+            console.log(`typeChar called, but #typing-input or #message not found in HTML. Character: ${c}`);
             return;
         }
 
-        input.focus();
+        // inputDisplay.focus(); // div要素なのでフォーカスは不要
         
         // ▼▼▼【ここから追加】入力検証ロジック ▼▼▼
         const target = messageElem.innerText;
-        const currentInputLength = input.value.length;
+        // let currentInputLength = inputDisplay.innerText.length; // divなのでinnerTextを使用
+        // 正確な入力文字数を把握するため、エラー文字を除いた長さを計算
+        let currentCorrectInputLength = 0;
+        const currentSpans = Array.from(inputDisplay.childNodes);
+        currentSpans.forEach(span => {
+            if (span.nodeName === "SPAN" && !span.classList.contains('error-char')) {
+                currentCorrectInputLength += span.textContent.length;
+            } else if (span.nodeType === Node.TEXT_NODE) { // 通常のテキストノードも考慮
+                currentCorrectInputLength += span.textContent.length;
+            }
+        });
         
         // バックスペースの処理
         if (c === "backspace") {
-            if (currentInputLength > 0) {
-                input.value = input.value.slice(0, -1);
-                // エラー状態をクリア
-                isErrorState = false;
+            if (errorCharCount > 0) {
+                // エラー文字を1つ削除
+                const spans = inputDisplay.querySelectorAll('span.error-char');
+                if (spans.length > 0) {
+                    spans[spans.length - 1].remove();
+                    errorCharCount--;
+                }
+                if (errorCharCount === 0) {
+                    isErrorState = false;
+                    hideErrorMessage();
+                }
+                console.log("Error character deleted. Errors remaining: ", errorCharCount);
+            } else if (currentCorrectInputLength > 0) {
+                // 正しい入力文字を1つ削除
+                // inputDisplay.innerText = inputDisplay.innerText.slice(0, -1);
+                // 最後のspanまたはテキストノードを削除
+                if (inputDisplay.lastChild) {
+                    inputDisplay.removeChild(inputDisplay.lastChild);
+                }
+                isErrorState = false; // エラー状態もクリア
                 hideErrorMessage();
-                console.log("Character deleted, error state cleared");
+                console.log("Correct character deleted");
             }
         } else {
             // 通常の文字入力の処理
-            
-            // エラー状態の場合、削除のみを許可
-            if (isErrorState) {
-                console.warn(`Error state active. Please delete incorrect character first. Attempted: ${c}`);
-                showErrorMessage(`間違った文字です。削除ジェスチャー (5,5) で削除してください。入力された文字: '${c}'`);
-                return;
-            }
-            
-            // 正しい文字かチェック
-            if (currentInputLength < target.length) {
-                const expectedChar = target[currentInputLength];
+            // エラー状態でも、新しい文字は入力せず、エラー文字として表示する
+            if (currentCorrectInputLength + errorCharCount < target.length) {
+                const expectedChar = target[currentCorrectInputLength];
                 
-                if (c === expectedChar) {
+                if (c === expectedChar && !isErrorState) {
                     // 正しい文字の場合、入力を受け入れる
-                    input.value += c;
+                    // inputDisplay.innerText += c;
+                    const charSpan = document.createElement('span');
+                    charSpan.textContent = c;
+                    inputDisplay.appendChild(charSpan);
+
                     isErrorState = false;
                     hideErrorMessage();
                     console.log(`Correct character entered: ${c}`);
                 } else {
-                    // 間違った文字の場合、エラー状態にする
+                    // 間違った文字の場合、エラー状態にし、エラー文字として表示
                     isErrorState = true;
+                    const errorSpan = document.createElement('span');
+                    errorSpan.textContent = c;
+                    errorSpan.style.color = 'red';
+                    errorSpan.classList.add('error-char'); // エラー文字を特定するためのクラス
+                    inputDisplay.appendChild(errorSpan);
+                    errorCharCount++;
                     showErrorMessage(`間違った文字です。期待される文字: '${expectedChar}', 入力された文字: '${c}'. 削除ジェスチャー (5,5) で削除してください。`);
-                    console.warn(`Incorrect character entered. Expected: '${expectedChar}', Got: '${c}'`);
-                    return; // 文字は入力しない
+                    console.warn(`Incorrect character entered. Expected: '${expectedChar}', Got: '${c}'. Error count: ${errorCharCount}`);
+                    // return; // 文字は入力しない、というよりエラー文字として表示済み
                 }
             } else {
-                // 目標文字列を超えた入力は受け付けない
-                console.warn("Target text already completed");
+                // 目標文字列を超えた入力は受け付けない（エラー文字も含む）
+                console.warn("Target text (or error buffer) already completed");
                 return;
             }
         }
         // ▲▲▲【ここまで追加】▲▲▲
 
-        let inputValue = input.value;
+        // let inputValue = inputDisplay.innerText; // divなのでinnerTextを使用
         // #messageのinnerTextを色付けして表示
+        // エラー文字を除いた正しい入力部分の長さを再計算
+        let correctInputValue = "";
+        inputDisplay.childNodes.forEach(node => {
+            if (node.nodeName === "SPAN" && !node.classList.contains('error-char')) {
+                correctInputValue += node.textContent;
+            } else if (node.nodeType === Node.TEXT_NODE) {
+                correctInputValue += node.textContent;
+            }
+        });
+
         let matchLen = 0;
-        for (let i = 0; i < Math.min(inputValue.length, target.length); i++) {
-            if (inputValue[i] === target[i]) {
+        for (let i = 0; i < Math.min(correctInputValue.length, target.length); i++) {
+            if (correctInputValue[i] === target[i]) {
             matchLen++;
             } else {
             break;
@@ -704,9 +770,9 @@ const sketch = (p) => {
         // ▼▼▼【ここから修正】エラー状態に応じた表示 ▼▼▼
         if (isErrorState) {
             // エラー状態の場合、次の文字を赤で表示
-            const errorChar = target[inputValue.length] || "";
+            const errorChar = target[correctInputValue.length] || "";
             messageElem.innerHTML =
-                `<span style="background-color:lightgreen">${matched}</span><span style="background-color:red; color:white">${errorChar}</span><span style="background-color:transparent">${target.slice(inputValue.length + 1)}</span>`;
+                `<span style="background-color:lightgreen">${matched}</span><span style="background-color:red; color:white">${errorChar}</span><span style="background-color:transparent">${target.slice(correctInputValue.length + 1)}</span>`;
         } else {
             // 通常状態の表示
             messageElem.innerHTML =
@@ -715,19 +781,24 @@ const sketch = (p) => {
         // ▲▲▲【ここまで修正】▲▲▲
 
         // もしvalueの値がsample_texts[0]と同じになったら、[0]を削除して、次のサンプル文章に移行する。配列長が0になったらゲームを終了する
-        if (document.querySelector('input').value == sample_texts[0]) {
+        // if (document.querySelector('input').value == sample_texts[0]) { // divに変更したため修正
+        if (!isErrorState && correctInputValue === sample_texts[0]) {
             sample_texts.shift(); // 最初の要素を削除
             console.log(sample_texts.length);
             if (sample_texts.length == 0) {
             // サンプル文章がなくなったらゲーム終了
             game_mode.previous = game_mode.now;
             game_mode.now = "finished";
-            document.querySelector('input').value = "";
+            // document.querySelector('input').value = ""; // divに変更したため修正
+            inputDisplay.innerHTML = ""; // 入力表示をクリア
+            errorCharCount = 0; // エラーカウントもリセット
             const elapsedSec = ((p.millis() - game_start_time) / 1000).toFixed(2); // p.millis()を使用
             document.querySelector('#message').innerText = `Finished: ${elapsedSec} sec`;
             } else {
             // 次のサンプル文章に移行
-            document.querySelector('input').value = "";
+            // document.querySelector('input').value = ""; // divに変更したため修正
+            inputDisplay.innerHTML = ""; // 入力表示をクリア
+            errorCharCount = 0; // エラーカウントもリセット
             document.querySelector('#message').innerText = sample_texts[0];
             }
         }
@@ -781,6 +852,7 @@ const sketch = (p) => {
         // }
     }
          //===================
+    /* // デバッグ用のためコメントアウト
     function logDebugInfo() {
         let now = p.millis();
         // LOG_INTERVALで設定した時間が経過していたら、ログを出力
@@ -792,6 +864,7 @@ const sketch = (p) => {
             lastLogTime = now; // 最後にログを出力した時間を更新
         }
     }
+    */
    
 };
 

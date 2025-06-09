@@ -13,12 +13,32 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="./p5.js"></script>
     <link rel="stylesheet" href="style.css">
+    <style>
+    :root {
+      --body-bg-color: #373737; /* Original: bg-gray-800 */
+      --body-text-color: #bdbdbd; /* Original: text-white */
+      --muted-text-color: #d4d4d4; /* Original: text-gray-400 */
+      --overlay-bg-color: rgba(55, 65, 81, 0.8); /* Original: bg-gray-700 bg-opacity-80 */
+      --ui-element-bg-color: #848484; /* Original: bg-gray-700 */
+      --button-primary-bg-color: #6f7e97; /* Original: bg-blue-500 */
+      --button-text-color: #d8d8d8; /* Original: text-white (used in buttons) */
+      --error-text-color: #f87171; /* Original: text-red-400 */
+      --char-display-bg-color: rgba(229, 231, 235, 0.9); /* Original: bg-gray-200 bg-opacity-90 */
+      --game-info-bg-color: #707070; /* Original: bg-gray-800 (for game info section) */
+      --input-bg-color: #484848; /* Original: bg-gray-900 */
+      --input-text-color: #ffffff; /* Original: text-white (for input) */
+      --error-message-bg-color: #fee2e2; /* Original: bg-red-100 */
+      --error-message-border-color: #f87171; /* Original: border-red-400 */
+      --error-message-text-color: #b91c1c; /* Original: text-red-700 */
+      --button-restart-bg-color: #c5aa22; /* Original: bg-green-500 */
+    }
+    </style>
 </head>
-<body class="bg-gray-800 text-white">
+<body style="background-color: var(--body-bg-color); color: var(--body-text-color);">
     <div class="container mx-auto p-2 sm:p-4 flex flex-col items-center">
         
         <h1 class="text-2xl sm:text-4xl font-bold mb-2 text-center">Gesture Typing</h1>
-        <p class="text-xs sm:text-sm text-gray-400 mb-4 text-center">
+        <p class="text-xs sm:text-sm mb-4 text-center" style="color: var(--muted-text-color);">
             Using MediaPipe and p5.js with a custom model
         </p>
     
@@ -28,18 +48,18 @@
                 <!-- p5.jsがここにCanvasを生成します -->
                 
                 <!-- ローディングとスタートボタン用のオーバーレイ -->
-                <div id="ui-overlay" class="absolute inset-0 bg-gray-700 bg-opacity-80 flex flex-col justify-center items-center text-center p-2 sm:p-4">
+                <div id="ui-overlay" class="absolute inset-0 flex flex-col justify-center items-center text-center p-2 sm:p-4" style="background-color: var(--overlay-bg-color);">
                     <div id="loading-ui">
                         <p id="loading-message" class="text-sm sm:text-lg mb-2">モデルを読み込んでいます...</p>
                         <div class="loader"></div>
                     </div>
                     <div id="start-ui" class="hidden">
                         <p id="start-message" class="text-sm sm:text-lg mb-4">準備完了です</p>
-                        <button id="startButton" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 sm:py-3 sm:px-8 rounded-lg text-lg sm:text-xl transition-colors">
+                        <button id="startButton" class="hover:bg-blue-600 font-bold py-2 px-4 sm:py-3 sm:px-8 rounded-lg text-lg sm:text-xl transition-colors" style="background-color: var(--button-primary-bg-color); color: var(--button-text-color);">
                             Start Challenge
                         </button>
                     </div>
-                    <div id="error-ui" class="hidden text-red-400">
+                    <div id="error-ui" class="hidden" style="color: var(--error-text-color);">
                         <p>エラーが発生しました。</p>
                         <p id="error-message" class="text-xs sm:text-sm"></p>
                     </div>
@@ -47,7 +67,7 @@
             </main>
 
             <!-- 右側：文字入力状況表示UI -->
-            <div id="character-display" class="bg-gray-200 bg-opacity-90 rounded-lg p-2 sm:p-4 w-full max-w-xs lg:w-32 hidden">
+            <div id="character-display" class="rounded-lg p-2 sm:p-4 w-full max-w-xs lg:w-32 hidden" style="background-color: var(--char-display-bg-color);">
                 <div id="char-list" class="flex flex-row lg:flex-col justify-center lg:justify-start items-center space-x-2 lg:space-x-0 lg:space-y-2">
                     <!-- 文字がJavaScriptで動的に追加されます -->
                 </div>
@@ -55,23 +75,24 @@
         </div>
     
         <!-- ▼▼▼ ゲーム用のUI要素 (初期状態では非表示) ▼▼▼ -->
-        <div id="game-ui" class="w-full max-w-4xl bg-gray-700 p-3 sm:p-4 rounded-lg shadow-lg hidden">
-            <div class="bg-gray-800 rounded-md p-2 sm:p-3 mb-3 text-center">
+        <div id="game-ui" class="w-full max-w-4xl p-3 sm:p-4 rounded-lg shadow-lg hidden" style="background-color: var(--ui-element-bg-color);">
+            <div class="bg-gray-800 rounded-md p-2 sm:p-3 mb-3 text-center" style="background-color: var(--game-info-bg-color);">
                 <h5 class="font-semibold text-sm sm:text-base">Target Text:</h5>
                 <p id="message" class="text-lg sm:text-2xl font-mono tracking-wider break-words">Press the start button to begin</p>
             </div>
             <div>
-                <input type="text" id="typing-input" class="w-full p-2 sm:p-3 bg-gray-900 text-white rounded-md text-lg sm:text-2xl font-mono tracking-wider text-center" readonly>
+                <!-- <input type="text" id="typing-input" class="w-full p-2 sm:p-3 rounded-md text-lg sm:text-2xl font-mono tracking-wider text-center" style="background-color: var(--input-bg-color); color: var(--input-text-color);" readonly> -->
+                <div id="typing-input" class="w-full p-2 sm:p-3 bg-gray-900 text-white rounded-md text-lg sm:text-2xl font-mono tracking-wider text-center" style="background-color: var(--input-bg-color); color: var(--input-text-color); min-height: 50px; /* 高さを確保 */ white-space: pre-wrap; /* 改行とスペースを保持 */ word-break: break-all; /* 単語の途中でも折り返す */"></div>
             </div>
             
             <!-- ▼▼▼【ここから追加】エラーメッセージ表示エリア ▼▼▼ -->
-            <div id="error-message-display" class="mt-3 p-2 sm:p-3 bg-red-100 border border-red-400 text-red-700 rounded-md text-center hidden">
+            <div id="error-message-display" class="mt-3 p-2 sm:p-3 border rounded-md text-center hidden" style="background-color: var(--error-message-bg-color); border-color: var(--error-message-border-color); color: var(--error-message-text-color);">
                 <div class="font-bold text-sm sm:text-base">入力エラー</div>
                 <div id="error-text" class="text-xs sm:text-sm mt-1">間違った文字が入力されました。削除ジェスチャー (5,5) で削除してください。</div>
             </div>
             <!-- ▲▲▲【ここまで追加】▲▲▲ -->
             
-            <button id="restartButton" class="mt-4 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded text-sm sm:text-base">
+            <button id="restartButton" class="mt-4 hover:bg-green-600 font-bold py-2 px-4 rounded text-sm sm:text-base" style="background-color: var(--button-restart-bg-color); color: var(--button-text-color);">
                 Restart
             </button>
         </div>
