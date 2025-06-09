@@ -1,6 +1,6 @@
 const GAS_URL =
   window.GAS_URL ||
-  "https://script.google.com/macros/s/AKfycbyNbrA87prZh3en255zzcOGbCxMiBeoGsoiKJwOhyRzvXpPnSOVp9djaFv3klEDebw/exec";
+  "https://script.google.com/macros/s/AKfycbxPqNcqwLsebxaCfocbxGild3y8s5Wxx7URc6Ftdcr1b1kh7WEbgpo7g8nVJv6gymuq/exec";
 // Use a simple proxy to work around CORS restrictions during local testing.
 const CORS_PROXY = window.CORS_PROXY || "https://corsproxy.io/?";
 function safeRandomId() {
@@ -38,12 +38,20 @@ export async function submitScore(score) {
 
 export async function loadRanking(limit = 10) {
   try {
-    const res = await fetch(`${CORS_PROXY}${GAS_URL}?limit=${limit}`);
+    const playerId = getPlayerId(); // プレイヤーIDを取得
+    // playerIdがnullやundefinedでないことを確認し、URLに追加
+    const url = `${CORS_PROXY}${GAS_URL}?limit=${limit}${playerId ? '&id=' + playerId : ''}`;
+    console.log("Requesting URL:", url); // リクエストURLをログ出力
+    const res = await fetch(url);
     const text = await res.text();
+    console.log("Raw response from GAS:", text); // 受信したテキストをログ出力
     let data;
     try {
       data = JSON.parse(text);
     } catch (parseErr) {
+      // JSONパースエラー時にも、元のテキストとエラー情報をログに出力
+      console.error('Failed to parse JSON response:', parseErr);
+      console.error('Original text that failed to parse:', text);
       throw new Error('Invalid JSON response');
     }
     const { rows, total, player } = data;

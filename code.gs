@@ -6,7 +6,8 @@ const COL_TIMESTAMP = 1, COL_SCORE = 2, COL_ID = 3;
 function doPost(e) {
   const { score, id } = JSON.parse(e.postData.contents);
   const sh   = SpreadsheetApp.getActive().getSheetByName(SHEET_NAME);
-  const rows = sh.getRange(2, 1, sh.getLastRow() - 1, 3).getValues(); // 全データ
+  const lastRow = sh.getLastRow();
+  const rows = lastRow > 1 ? sh.getRange(2, 1, lastRow - 1, 3).getValues() : [];
 
   // 既存 ID を検索
   const idx = rows.findIndex(r => r[COL_ID - 1] === id);
@@ -23,33 +24,70 @@ function doPost(e) {
 
 /* =========  GET : ランキング取得  ========= */
 function doGet(e) {
-  const limit = Number(e.parameter.limit) || 20;
-  const id    = e.parameter.id;
-  const sh    = SpreadsheetApp.getActive().getSheetByName(SHEET_NAME);
-  const rows  = sh.getRange(2, 1, sh.getLastRow() - 1, 3).getValues();
+  try {
+    // e.parameter が存在しない場合のフォールバック処理
+    const params = e && e.parameter ? e.parameter : {};
+    const limit = Number(params.limit) || 20;
+    const id    = params.id;
+    Logger.log(`doGet called with limit: ${limit}, id: ${id}`); // パラメータをログ出力
 
-  const sorted = rows.sort((a, b) => a[COL_SCORE - 1] - b[COL_SCORE - 1]);
+    const sh    = SpreadsheetApp.getActive().getSheetByName(SHEET_NAME);
+    const lastRow = sh.getLastRow();
+    const numColumnsToFetch = COL_ID - COL_TIMESTAMP + 1;
+    const dataRange = lastRow > 1 ? sh.getRange(2, COL_TIMESTAMP, lastRow - 1, numColumnsToFetch) : null;
+    const rows  = dataRange ? dataRange.getValues() : [];
+    Logger.log(`Fetched ${rows.length} rows from sheet.`);
 
-  const playerIndex = id ? sorted.findIndex(r => r[COL_ID - 1] === id) : -1;
-  const player = playerIndex > -1
-    ? {
-        time: sorted[playerIndex][0],
-        score: sorted[playerIndex][1],
-        id: sorted[playerIndex][2],
-        rank: playerIndex + 1,
+    const sorted = rows.sort((a, b) => a[COL_SCORE - 1] - b[COL_SCORE - 1]);
+    const limited = sorted.slice(0, limit);
+    const result = limited.map(toObject);
+    Logger.log(`Processed ${result.length} rows for ranking.`);
+
+    let playerRank = {};
+    if (id) {
+      const playerRow = sorted.find(r => r[COL_ID -1] === id);
+      if (playerRow) {
+        const rank = sorted.findIndex(r => r[COL_ID -1] === id) + 1;
+        playerRank = { ...toObject(playerRow), rank };
+        Logger.log(`Player ${id} found with rank ${rank}.`);
+      } else {
+        Logger.log(`Player ${id} not found.`);
       }
-    : null;
+    }
 
-  const limited = sorted
-    .slice(0, limit)
-    .map(r => ({ time: r[0], score: r[1], id: r[2] }));
-  
-  return json({ rows: limited, total: rows.length, player });
+    const json = JSON.stringify({
+      rows: result,
+      total: sorted.length,
+      player: playerRank,
+    });
+    Logger.log(`Returning JSON: ${json}`);
+    // setHeader の呼び出しを削除
+    return ContentService.createTextOutput(json).setMimeType(
+      ContentService.MimeType.JSON
+    );
+  } catch (err) {
+    Logger.log(`Error in doGet: ${err.message} Stack: ${err.stack}`);
+    // エラー時もJSON形式で返す
+    const errorResponse = JSON.stringify({
+      error: err.message,
+      stack: err.stack, // デバッグ用にスタックトレースも含める
+    });
+    // setHeader の呼び出しを削除
+    return ContentService.createTextOutput(errorResponse).setMimeType(
+      ContentService.MimeType.JSON
+    );
+  }
 }
 
 /* =========  UTIL  ========= */
+function toObject(row) {
+  return {
+    time: row[COL_TIMESTAMP - 1],
+    score: row[COL_SCORE - 1],
+    id: row[COL_ID - 1]
+  };
+}
+
 function json(obj) {
-  return ContentService.createTextOutput(JSON.stringify(obj))
-         .setMimeType(ContentService.MimeType.JSON)
-         .setHeader('Access-Control-Allow-Origin', '*');
+  // ... (existing json function)
 }
