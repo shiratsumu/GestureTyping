@@ -47,11 +47,11 @@ const GAS_URL = '<YOUR_GAS_URL>'; // 例: https://script.google.com/macros/s/...
 ```
 
 ## スコア送信・取得 API
-`submitScore(score)` でスコア(秒)を送信し、`loadRanking(limit)` でランキングを取得できます。どちらも `script.js` に実装されています。
+`submitScore(score)` でスコア(秒)を送信し、`loadRanking(limit)` でランキングを取得できます。どちらも `script.js` に実装されています。`loadRanking` はプレイヤーの順位も含めて返します。
 
 ```javascript
 import { submitScore, loadRanking } from './script.js';
 submitScore(12.34).then(() => loadRanking());
 ```
 
-`loadRanking` はランキングを `<ol id="ranking">` に表示し、プレイヤー自身の順位は `<p id="record">` に表示されます。
+`loadRanking` はランキングを `<ol id="ranking">` に表示し、プレイヤー自身の順位は `<p id="record">` に表示されます。順位は全プレイヤー中での位置を示します。

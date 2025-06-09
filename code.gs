@@ -24,14 +24,27 @@ function doPost(e) {
 /* =========  GET : ランキング取得  ========= */
 function doGet(e) {
   const limit = Number(e.parameter.limit) || 20;
+  const id    = e.parameter.id;
   const sh    = SpreadsheetApp.getActive().getSheetByName(SHEET_NAME);
   const rows  = sh.getRange(2, 1, sh.getLastRow() - 1, 3).getValues();
 
-  const sorted = rows
-    .sort((a, b) => a[COL_SCORE - 1] - b[COL_SCORE - 1])
+  const sorted = rows.sort((a, b) => a[COL_SCORE - 1] - b[COL_SCORE - 1]);
+
+  const playerIndex = id ? sorted.findIndex(r => r[COL_ID - 1] === id) : -1;
+  const player = playerIndex > -1
+    ? {
+        time: sorted[playerIndex][0],
+        score: sorted[playerIndex][1],
+        id: sorted[playerIndex][2],
+        rank: playerIndex + 1,
+      }
+    : null;
+
+  const limited = sorted
     .slice(0, limit)
     .map(r => ({ time: r[0], score: r[1], id: r[2] }));
-  return json(sorted);
+  
+  return json({ rows: limited, total: rows.length, player });
 }
 
 /* =========  UTIL  ========= */

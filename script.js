@@ -1,30 +1,51 @@
 const GAS_URL = window.GAS_URL || 'https://script.google.com/macros/s/AKfycbyNbrA87prZh3en255zzcOGbCxMiBeoGsoiKJwOhyRzvXpPnSOVp9djaFv3klEDebw/exec';
 
+function safeRandomId() {
+  if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+    return window.crypto.randomUUID();
+  }
+  return (
+    Math.random().toString(36).slice(2) +
+    Math.random().toString(36).slice(2)
+  );
+}
+
 export function getPlayerId() {
   let id = localStorage.getItem('playerId');
   if (!id) {
-    id = crypto.randomUUID();
+    id = safeRandomId();
     localStorage.setItem('playerId', id);
   }
   return id;
 }
 
 export async function submitScore(score) {
-  await fetch(GAS_URL, {
-    method: 'POST',
-    // Use text/plain to avoid CORS preflight
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify({ score, id: getPlayerId() })
-  });
+  try {
+    await fetch(GAS_URL, {
+      method: 'POST',
+      // Use text/plain to avoid CORS preflight
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ score, id: getPlayerId() })
+    });
+  } catch (err) {
+    console.error('Failed to submit score', err);
+    showRequestError('Failed to submit score');
+  }
 }
 
 export async function loadRanking(limit = 10) {
-  const res = await fetch(`${GAS_URL}?limit=${limit}`);
-  const list = await res.json();
-  list.sort((a, b) => a.score - b.score);
-  renderRanking(list);
-  updateRecordMessage(list);
-  return list;
+  try {
+    const res = await fetch(`${GAS_URL}?limit=${limit}`);
+    const list = await res.json();
+    list.sort((a, b) => a.score - b.score);
+    renderRanking(list);
+    updateRecordMessage(list);
+    return list;
+  } catch (err) {
+    console.error('Failed to load ranking', err);
+    showRequestError('Failed to load ranking');
+    return [];
+  }
 }
 
 function renderRanking(rows) {
@@ -37,6 +58,14 @@ function renderRanking(rows) {
     ul.appendChild(li);
   });
 }
+
+function showRequestError(msg) {
+  const record = document.getElementById('record');
+  if (record) {
+    record.textContent = msg;
+  }
+}
+
 
 function updateRecordMessage(rows) {
   const playerId = getPlayerId();
