@@ -101,5 +101,14 @@
     </div>
 
     <script type="module" src="sketch.js"></script>
+
+    <h2>Leaderboard</h2>
+    <p id="record"></p>
+    <ol id="ranking"></ol>
+    <script type="module">
+      import { loadRanking } from './script.js';
+      loadRanking();
+      setInterval(loadRanking, 10000);
+    </script>
 </body>
 </html>

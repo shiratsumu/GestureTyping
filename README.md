@@ -38,3 +38,20 @@ modelAssetPath: "./models/gesture_recognizer.task",
 ## 主な編集箇所
 基本的には sketch.js のみを編集してください。またプログラム内にて、「ここから下は編集しないでください」とコメントアウトしている箇所がありますので、それより上の行のみを編集してください。ただしシステムの実装にあたり、draw()関数ないやその他の記述を編集する必要がある場合は、ご自身の判断で編集していただいて構いませんが、ゲームのルールに反するような編集は行わないでください。
 
+## GAS_URL の追加方法
+Google Apps Script でデプロイした URL を `script.js` の `GAS_URL` 定数に設定してください。
+
+```javascript
+// script.js 内
+const GAS_URL = '<YOUR_GAS_URL>'; // 例: https://script.google.com/macros/s/...
+```
+
+## スコア送信・取得 API
+`submitScore(score)` でスコア(秒)を送信し、`loadRanking(limit)` でランキングを取得できます。どちらも `script.js` に実装されています。
+
+```javascript
+import { submitScore, loadRanking } from './script.js';
+submitScore(12.34).then(() => loadRanking());
+```
+
+`loadRanking` はランキングを `<ol id="ranking">` に表示し、プレイヤー自身の順位は `<p id="record">` に表示されます。

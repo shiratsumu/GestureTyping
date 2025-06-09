@@ -1,4 +1,5 @@
 import { initializeLandmarkers, startDetection, faceResults, gestureResults } from "./mediapipe_manager.js";
+import { submitScore, loadRanking } from "./script.js";
 
 const sketch = (p) => {
     
@@ -793,7 +794,8 @@ const sketch = (p) => {
             inputDisplay.innerHTML = ""; // 入力表示をクリア
             errorCharCount = 0; // エラーカウントもリセット
             const elapsedSec = ((p.millis() - game_start_time) / 1000).toFixed(2); // p.millis()を使用
-            document.querySelector('#message').innerText = `Finished: ${elapsedSec} sec`;
+            document.querySelector('#message').innerText = `Record: ${elapsedSec} sec`;
+            submitScore(Number(elapsedSec)).then(() => loadRanking());      
             } else {
             // 次のサンプル文章に移行
             // document.querySelector('input').value = ""; // divに変更したため修正
