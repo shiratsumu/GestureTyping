@@ -38,7 +38,7 @@
     <div class="container mx-auto p-2 sm:p-4 flex flex-col items-center">
         
         <div class="flex items-center mb-2">
-            <h1 class="text-2xl sm:text-4xl font-bold text-center">Gesture Typing</h1>
+            <h1 class="text-2xl sm:text-4xl font-bold text-center">Kuchi Gesture Typing</h1>
             <button id="cameraToggleBtn" class="ml-2 p-1" aria-label="カメラ切替">
                 <svg id="cameraOnIcon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M4 6h10c1.105 0 2 .895 2 2v8c0 1.105-.895 2-2 2H4c-1.105 0-2-.895-2-2V8c0-1.105.895-2 2-2z" />
@@ -113,13 +113,28 @@
 
     <script type="module" src="sketch.js"></script>
 
-    <h2>Leaderboard</h2>
+    <h2 id="leaderboard-title">Leaderboard</h2>
     <p id="record"></p>
     <ol id="ranking"></ol>
     <script type="module">
       import { loadRanking } from './script.js';
-      loadRanking();
-      setInterval(loadRanking, 10000);
+      function updateRanking() {
+        const title = document.getElementById('leaderboard-title');
+        const record = document.getElementById('record');
+        const ranking = document.getElementById('ranking');
+        if (window.game_mode && window.game_mode.now === 'playing') {
+          title.style.display = 'none';
+          record.style.display = 'none';
+          ranking.style.display = 'none';
+          return;
+        }
+        title.style.display = '';
+        record.style.display = '';
+        ranking.style.display = '';
+        loadRanking();
+      }
+      updateRanking();
+      setInterval(updateRanking, 10000);
     </script>
 </body>
 </html>

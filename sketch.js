@@ -53,6 +53,7 @@ const sketch = (p) => {
         now: "ready", // カメラが起動したらすぐに「準備完了」状態にする
         previous: "ready",
     };// 初期状態は "ready"（準備完了）
+    window.game_mode = game_mode;
     let game_start_time = 0;
 
 
@@ -345,10 +346,11 @@ let cam; // p5.jsのウェブカメラオブジェクト
             game_mode.now = "playing";
             game_start_time = p.millis();
             document.querySelector('#message').innerText = sample_texts[0];
-            document.querySelector('#typing-input').value = "";
-            
+            document.querySelector('#typing-input').textContent = "";
+
             // ▼▼▼【ここから追加】ゲーム開始時にもエラー状態をリセット ▼▼▼
             isErrorState = false;
+            errorCharCount = 0; // エラーカウントもリセット
             currentInputIndex = 0;
             currentTargetText = "";
             hideErrorMessage();
@@ -368,16 +370,17 @@ let cam; // p5.jsのウェブカメラオブジェクト
             ];
             // HTMLの表示を初期状態に戻す
             document.querySelector('#message').innerText = "Press the start button to begin"; // ← スタート前のメッセージに変更
-            document.querySelector('#typing-input').value = "";
-            displayedChar = ''; 
+            document.querySelector('#typing-input').textContent = "";
+            displayedChar = '';
             lastChar = '';
-            
+
             // ▼▼▼【ここから追加】エラー状態もリセット ▼▼▼
             isErrorState = false;
+            errorCharCount = 0; // エラーカウントもリセット
             currentInputIndex = 0;
             currentTargetText = "";
             hideErrorMessage();
-            // ▲▲▲【ここまで追加】▲▲▲ 
+            // ▲▲▲【ここまで追加】▲▲▲
 
             // UIの状態をリセット
             const uiOverlay = document.querySelector('#ui-overlay');
