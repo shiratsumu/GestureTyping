@@ -1,4 +1,4 @@
-import { initializeLandmarkers, startDetection, faceResults, gestureResults } from "./mediapipe_manager.js";
+import { initializeLandmarkers, startDetection, stopDetection, faceResults, gestureResults } from "./mediapipe_manager.js";
 import { submitScore, loadRanking } from "./script.js";
 
 const sketch = (p) => {
@@ -236,7 +236,34 @@ const sketch = (p) => {
 
 
 
-    let cam; // p5.jsのウェブカメラオブジェクト
+let cam; // p5.jsのウェブカメラオブジェクト
+
+    // カメラのオンオフを管理
+    let cameraEnabled = true;
+
+    function startCamera() {
+        stopDetection();
+        const constraints = { video: { width: { ideal: 640 }, height: { ideal: 480 } } };
+        navigator.mediaDevices.getUserMedia(constraints).then(stream => {
+            if (cam && cam.elt) {
+                cam.elt.srcObject = stream;
+                cam.elt.play();
+            }
+            startDetection(cam.elt);
+            cameraEnabled = true;
+        }).catch(err => {
+            console.error('camera start error', err);
+        });
+    }
+
+    function stopCamera() {
+        stopDetection();
+        if (cam && cam.elt && cam.elt.srcObject) {
+            cam.elt.srcObject.getTracks().forEach(track => track.stop());
+            cam.elt.srcObject = null;
+        }
+        cameraEnabled = false;
+    }
 
     // --- 安定化（平滑化）のための設定 ---
     let smoothedFaceLandmarks = null;
@@ -267,6 +294,7 @@ const sketch = (p) => {
         cam = p.createCapture(p.VIDEO);
         cam.size(p.width, p.height);
         cam.hide();
+        cameraEnabled = true;
 
         // ▼▼▼【修正点 1/3】UI要素を取得し、初期化処理を分離します ▼▼▼
         const loadingUI = document.querySelector('#loading-ui');
@@ -274,6 +302,21 @@ const sketch = (p) => {
         const errorUI = document.querySelector('#error-ui');
         const errorMessage = document.querySelector('#error-message');
         const startButton = document.querySelector('#startButton');
+        const cameraToggle = document.querySelector('#cameraToggleBtn');
+        const camOnIcon = document.querySelector('#cameraOnIcon');
+        const camOffIcon = document.querySelector('#cameraOffIcon');
+
+        cameraToggle.addEventListener('click', () => {
+            if (cameraEnabled) {
+                camOnIcon.classList.add('hidden');
+                camOffIcon.classList.remove('hidden');
+                stopCamera();
+            } else {
+                camOffIcon.classList.add('hidden');
+                camOnIcon.classList.remove('hidden');
+                startCamera();
+            }
+        });
         
         try {
             await initializeLandmarkers();            
@@ -295,8 +338,8 @@ const sketch = (p) => {
 
             uiOverlay.classList.add('hidden'); // スタート画面を隠す
             gameUI.classList.remove('hidden'); // ゲームUIを表示
-            
-            startDetection(cam.elt); // MediaPipeの検出を開始
+
+            startCamera(); // カメラを必ずオンにする
 
             // ゲームの状態をリセットして開始
             game_mode.now = "playing";

@@ -47,6 +47,7 @@ export async function initializeLandmarkers() {
 
 let video = null;
 let lastVideoTime = -1;
+let rafId = null;
 
 /**
  * ウェブカメラを起動し、検出ループを開始する
@@ -88,6 +89,19 @@ async function predictWebcam() {
         gestureResults = gestureRecognizer.recognizeForVideo(video, performance.now());
     }
 
-    // 次のフレームを要求
-    window.requestAnimationFrame(predictWebcam);
+        rafId = window.requestAnimationFrame(predictWebcam);
+}
+
+export function stopDetection() {
+    if (video) {
+        video.removeEventListener("loadeddata", predictWebcam);
+        if (video.srcObject) {
+            video.srcObject.getTracks().forEach((t) => t.stop());
+            video.srcObject = null;
+        }
+    }
+    if (rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+    }
 }
