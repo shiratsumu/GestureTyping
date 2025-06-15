@@ -20,7 +20,10 @@
       --muted-text-color: #d4d4d4; /* Original: text-gray-400 */
       --overlay-bg-color: rgba(55, 65, 81, 0.8); /* Original: bg-gray-700 bg-opacity-80 */
       --ui-element-bg-color: #848484; /* Original: bg-gray-700 */
-      --button-primary-bg-color: #6f7e97; /* Original: bg-blue-500 */
+      --button-primary-bg-color: #6f7e97;
+      --button-primary-hover-bg-color: #666e7d; /* Original: bg-blue-500 */
+      --button-explanation-bg-color: #6f9791; /* Original: bg-blue-500 (for "How to Play" button) */
+      --button-explanation-hover-bg-color: #677d76; /* Original: bg-blue-500 (for "How to Play" button hover) */
       --button-text-color: #d8d8d8; /* Original: text-white (used in buttons) */
       --error-text-color: #f87171; /* Original: text-red-400 */
       --char-display-bg-color: rgba(229, 231, 235, 0.9); /* Original: bg-gray-200 bg-opacity-90 */
@@ -31,6 +34,7 @@
       --error-message-border-color: #f87171; /* Original: border-red-400 */
       --error-message-text-color: #b91c1c; /* Original: text-red-700 */
       --button-restart-bg-color: #c5aa22; /* Original: bg-green-500 */
+      --button-restart-hover-bg-color: #a8921d; /* リスタートボタンのホバー色 */
     }
     </style>
 </head>
@@ -38,7 +42,7 @@
     <div class="container mx-auto p-2 sm:p-4 flex flex-col items-center">
         
         <div class="flex items-center mb-2">
-            <h1 class="text-2xl sm:text-4xl font-bold text-center">Kuchi Gesture Typing</h1>
+            <h1 class="text-2xl sm:text-4xl font-bold text-center">口 Gesture Typing</h1>
             <button id="cameraToggleBtn" class="ml-2 p-1" aria-label="カメラ切替">
                 <svg id="cameraOnIcon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M4 6h10c1.105 0 2 .895 2 2v8c0 1.105-.895 2-2 2H4c-1.105 0-2-.895-2-2V8c0-1.105.895-2 2-2z" />
@@ -66,9 +70,18 @@
                     </div>
                     <div id="start-ui" class="hidden">
                         <p id="start-message" class="text-sm sm:text-lg mb-4">準備完了です</p>
-                        <button id="startButton" class="hover:bg-blue-600 font-bold py-2 px-4 sm:py-3 sm:px-8 rounded-lg text-lg sm:text-xl transition-colors" style="background-color: var(--button-primary-bg-color); color: var(--button-text-color);">
-                            Start Challenge
-                        </button>
+                        <div class="flex flex-col space-y-3 items-center">
+                            <button id="startButton" class="hover:bg-blue-600 font-bold py-2 px-4 sm:py-3 sm:px-8 rounded-lg text-lg sm:text-xl transition-colors" style="background-color: var(--button-primary-bg-color); color: var(--button-text-color);"
+                                    onmouseover="this.style.backgroundColor='var(--button-primary-hover-bg-color)'" 
+                                    onmouseout="this.style.backgroundColor='var(--button-primary-bg-color)'">
+                                Start Challenge
+                            </button>
+                            <button id="howToPlayButton" class="hover:bg-blue-600 w-auto py-1 px-4 sm:py-2 sm:px-5 rounded-md text-sm sm:text-base transition-colors" style="background-color: var(--button-explanation-bg-color); color: var(--button-text-color);"
+                                    onmouseover="this.style.backgroundColor='var(--button-explanation-hover-bg-color)'" 
+                                    onmouseout="this.style.backgroundColor='var(--button-explanation-bg-color)'">
+                                遊び方を見る
+                            </button> 
+                        </div>
                     </div>
                     <div id="error-ui" class="hidden" style="color: var(--error-text-color);">
                         <p>エラーが発生しました。</p>
@@ -103,7 +116,9 @@
             </div>
             <!-- ▲▲▲【ここまで追加】▲▲▲ -->
             
-            <button id="restartButton" class="mt-4 hover:bg-green-600 font-bold py-2 px-4 rounded text-sm sm:text-base" style="background-color: var(--button-restart-bg-color); color: var(--button-text-color);">
+            <button id="restartButton" class="mt-4 hover:bg-green-600 font-bold py-2 px-4 rounded text-sm sm:text-base" style="background-color: var(--button-restart-bg-color); color: var(--button-text-color);"
+                    onmouseover="this.style.backgroundColor='var(--button-restart-hover-bg-color)'" 
+                    onmouseout="this.style.backgroundColor='var(--button-restart-bg-color)'">
                 Restart
             </button>
         </div>
