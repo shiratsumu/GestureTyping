@@ -151,5 +151,35 @@
       updateRanking();
       setInterval(updateRanking, 10000);
     </script>
+
+    <!-- How to Play モーダル -->
+<div id="howToPlayModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 hidden p-0 m-0">
+  <div class="relative w-screen h-screen flex items-center justify-center p-0 m-0 bg-transparent shadow-none rounded-none">
+    <button id="closeHowToPlayModal" class="absolute top-4 right-4 text-white bg-black bg-opacity-40 hover:bg-opacity-70 text-3xl font-bold rounded-full w-12 h-12 flex items-center justify-center focus:outline-none z-10">&times;</button>
+    <img src="images/tutorial.png" alt="遊び方" class="w-full h-full object-contain bg-transparent select-none pointer-events-none" style="max-width:100vw; max-height:100vh;" />
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const howToPlayBtn = document.getElementById('howToPlayButton');
+  const modal = document.getElementById('howToPlayModal');
+  const closeBtn = document.getElementById('closeHowToPlayModal');
+  if (howToPlayBtn && modal && closeBtn) {
+    howToPlayBtn.addEventListener('click', function() {
+      modal.classList.remove('hidden');
+    });
+    closeBtn.addEventListener('click', function() {
+      modal.classList.add('hidden');
+    });
+    // モーダル外クリックで閉じる
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) {
+        modal.classList.add('hidden');
+      }
+    });
+  }
+});
+</script>
 </body>
 </html>
