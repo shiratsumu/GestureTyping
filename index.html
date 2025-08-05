@@ -39,98 +39,142 @@
     </style>
 </head>
 <body style="background-color: var(--body-bg-color); color: var(--body-text-color);">
-    <div class="container mx-auto p-2 sm:p-4 flex flex-col items-center">
+    <!-- 初期ページ -->
+    <div id="welcome-page" class="min-h-screen relative">
+        <!-- ヘッダー部分 -->
+        <header class="absolute top-0 left-0 right-0 z-10 p-4">
+            <div class="text-center">
+                <h1 class="text-2xl sm:text-4xl font-bold">口 Gesture Typing</h1>
+                <p class="text-xs sm:text-sm mt-2" style="color: var(--muted-text-color);">
+                    Using MediaPipe and p5.js with a custom model
+                </p>
+            </div>
+        </header>
         
-        <div class="flex items-center mb-2">
-            <h1 class="text-2xl sm:text-4xl font-bold text-center">口 Gesture Typing</h1>
-            <button id="cameraToggleBtn" class="ml-2 p-1" aria-label="カメラ切替">
-                <svg id="cameraOnIcon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M4 6h10c1.105 0 2 .895 2 2v8c0 1.105-.895 2-2 2H4c-1.105 0-2-.895-2-2V8c0-1.105.895-2 2-2z" />
-                </svg>
-                <svg id="cameraOffIcon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700 dark:text-gray-300 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path d="M15 10L19.553 7.724C19.7054 7.64784 19.8748 7.61188 20.045 7.61955C20.2152 7.62721 20.3806 7.67825 20.5256 7.76781C20.6706 7.85736 20.7902 7.98248 20.8733 8.13127C20.9563 8.28007 20.9999 8.44761 21 8.618V15.382C20.9999 15.5524 20.9563 15.7199 20.8733 15.8687C20.7902 16.0175 20.6706 16.1426 20.5256 16.2322C20.3806 16.3218 20.2152 16.3728 20.045 16.3805C19.8748 16.3881 19.7054 16.3522 19.553 16.276L15 14M4 6H14C15.105 6 16 6.895 16 8V16C16 17.105 15.105 18 14 18H4C2.895 18 2 17.105 2 16V8C2 6.895 2.895 6 4 6Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M1 2L21 22"  stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </button>
-        </div>
-        <p class="text-xs sm:text-sm mb-4 text-center" style="color: var(--muted-text-color);">
-            Using MediaPipe and p5.js with a custom model
-        </p>
-    
-        <!-- ▼▼▼【修正】ウェブカメラとテキストUIを横並びで配置 ▼▼▼ -->
-        <div class="flex flex-col lg:flex-row items-center lg:items-start gap-4 mb-4 w-full max-w-6xl">
-            <main id="canvas-container" class="relative w-full max-w-md sm:max-w-lg lg:max-w-xl">
-                <!-- p5.jsがここにCanvasを生成します -->
-                
-                <!-- ローディングとスタートボタン用のオーバーレイ -->
-                <div id="ui-overlay" class="absolute inset-0 flex flex-col justify-center items-center text-center p-2 sm:p-4" style="background-color: var(--overlay-bg-color);">
-                    <div id="loading-ui">
-                        <p id="loading-message" class="text-sm sm:text-lg mb-2">モデルを読み込んでいます...</p>
-                        <div class="loader"></div>
-                    </div>
-                    <div id="start-ui" class="hidden">
-                        <p id="start-message" class="text-sm sm:text-lg mb-4">準備完了です</p>
-                        <div class="flex flex-col space-y-3 items-center">
-                            <button id="startButton" class="hover:bg-blue-600 font-bold py-2 px-4 sm:py-3 sm:px-8 rounded-lg text-lg sm:text-xl transition-colors" style="background-color: var(--button-primary-bg-color); color: var(--button-text-color);"
+        <!-- メインコンテンツ -->
+        <div class="min-h-screen flex items-center justify-center pt-20 px-4 color-gray-200">
+            <div class="container mx-auto p-4 sm:p-6 flex flex-col items-center w-full max-w-6xl">
+                <!-- ウェルカム画面のコンテンツ -->
+                <div class="flex flex-col items-center space-y-6 w-full max-w-4xl text-center">
+                    <div class="p-8 sm:p-12 rounded-lg w-full" style="background-color: var(--ui-element-bg-color);">
+                        <h2 class="text-xl sm:text-3xl font-semibold mb-6">ジェスチャータイピングゲーム</h2>
+                        <p class="text-base sm:text-lg mb-6" style="color: var(--muted-text-color);">
+                            手のジェスチャーを使って文字を入力するタイピングゲームです。<br>
+                            両手の指の組み合わせで様々な文字を入力できます。
+                        </p>
+                        <div class="flex flex-col space-y-4 items-center">
+                            <button id="startChallengeBtn" class="hover:bg-blue-600 font-bold py-4 px-12 rounded-lg text-2xl sm:text-3xl transition-colors" style="background-color: var(--button-primary-bg-color); color: var(--button-text-color);"
                                     onmouseover="this.style.backgroundColor='var(--button-primary-hover-bg-color)'" 
                                     onmouseout="this.style.backgroundColor='var(--button-primary-bg-color)'">
                                 Start Challenge
                             </button>
-                            <button id="howToPlayButton" class="hover:bg-blue-600 w-auto py-1 px-4 sm:py-2 sm:px-5 rounded-md text-sm sm:text-base transition-colors" style="background-color: var(--button-explanation-bg-color); color: var(--button-text-color);"
+                            <button id="howToPlayButton" class="hover:bg-blue-600 w-auto py-3 px-8 rounded-md text-lg sm:text-xl transition-colors" style="background-color: var(--button-explanation-bg-color); color: var(--button-text-color);"
                                     onmouseover="this.style.backgroundColor='var(--button-explanation-hover-bg-color)'" 
                                     onmouseout="this.style.backgroundColor='var(--button-explanation-bg-color)'">
                                 遊び方を見る
                             </button> 
                         </div>
                     </div>
-                    <div id="error-ui" class="hidden" style="color: var(--error-text-color);">
-                        <p>エラーが発生しました。</p>
-                        <p id="error-message" class="text-xs sm:text-sm"></p>
-                    </div>
-                </div>
-            </main>
-
-            <!-- 右側：文字入力状況表示UI -->
-            <div id="character-display" class="rounded-lg p-2 sm:p-4 w-full max-w-xs lg:w-32 hidden" style="background-color: var(--char-display-bg-color);">
-                <div id="char-list" class="flex flex-row lg:flex-col justify-center lg:justify-start items-center space-x-2 lg:space-x-0 lg:space-y-2">
-                    <!-- 文字がJavaScriptで動的に追加されます -->
                 </div>
             </div>
         </div>
-    
-        <!-- ▼▼▼ ゲーム用のUI要素 (初期状態では非表示) ▼▼▼ -->
-        <div id="game-ui" class="w-full max-w-4xl p-3 sm:p-4 rounded-lg shadow-lg hidden" style="background-color: var(--ui-element-bg-color);">
-            <div class="bg-gray-800 rounded-md p-2 sm:p-3 mb-3 text-center" style="background-color: var(--game-info-bg-color);">
-                <h5 class="font-semibold text-sm sm:text-base">Target Text:</h5>
-                <p id="message" class="text-lg sm:text-2xl font-mono tracking-wider break-words">Press the start button to begin</p>
-            </div>
-            <div>
-                <!-- <input type="text" id="typing-input" class="w-full p-2 sm:p-3 rounded-md text-lg sm:text-2xl font-mono tracking-wider text-center" style="background-color: var(--input-bg-color); color: var(--input-text-color);" readonly> -->
-                <div id="typing-input" class="w-full p-2 sm:p-3 bg-gray-900 text-white rounded-md text-lg sm:text-2xl font-mono tracking-wider text-center" style="background-color: var(--input-bg-color); color: var(--input-text-color); min-height: 50px; /* 高さを確保 */ white-space: pre-wrap; /* 改行とスペースを保持 */ word-break: break-all; /* 単語の途中でも折り返す */"></div>
-            </div>
-            
-            <!-- ▼▼▼【ここから追加】エラーメッセージ表示エリア ▼▼▼ -->
-            <div id="error-message-display" class="mt-3 p-2 sm:p-3 border rounded-md text-center hidden" style="background-color: var(--error-message-bg-color); border-color: var(--error-message-border-color); color: var(--error-message-text-color);">
-                <div class="font-bold text-sm sm:text-base">入力エラー</div>
-                <div id="error-text" class="text-xs sm:text-sm mt-1">間違った文字が入力されました。削除ジェスチャー (5,5) で削除してください。</div>
-            </div>
-            <!-- ▲▲▲【ここまで追加】▲▲▲ -->
-            
-            <button id="restartButton" class="mt-4 hover:bg-green-600 font-bold py-2 px-4 rounded text-sm sm:text-base" style="background-color: var(--button-restart-bg-color); color: var(--button-text-color);"
-                    onmouseover="this.style.backgroundColor='var(--button-restart-hover-bg-color)'" 
-                    onmouseout="this.style.backgroundColor='var(--button-restart-bg-color)'">
-                Restart
-            </button>
-        </div>
-        <!-- ▲▲▲ -->
+    </div>
 
+    <!-- ゲームページ -->
+    <div id="game-page" class="min-h-screen relative hidden">
+        <!-- ヘッダー部分 -->
+        <header class="absolute top-0 left-0 right-0 z-20 p-2 sm:p-4" style="background: linear-gradient(to bottom, rgba(55, 55, 55, 0.8), rgba(55, 55, 55, 0));">
+            <div class="flex items-center justify-between">
+                <button id="backToWelcomeBtn" class="p-2 rounded-lg hover:bg-gray-600 transition-colors" style="background-color: var(--ui-element-bg-color); color: var(--button-text-color);" aria-label="戻る">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                </button>
+                <div class="flex-1 text-center">
+                    <h1 class="text-xl sm:text-3xl font-bold">口 Gesture Typing</h1>
+                    <p class="text-xs sm:text-sm" style="color: var(--muted-text-color);">
+                        Using MediaPipe and p5.js with a custom model
+                    </p>
+                </div>
+                <button id="cameraToggleBtn" class="p-2" aria-label="カメラ切替">
+                    <svg id="cameraOnIcon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M4 6h10c1.105 0 2 .895 2 2v8c0 1.105-.895 2-2 2H4c-1.105 0-2-.895-2-2V8c0-1.105.895-2 2-2z" />
+                    </svg>
+                    <svg id="cameraOffIcon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700 dark:text-gray-300 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path d="M15 10L19.553 7.724C19.7054 7.64784 19.8748 7.61188 20.045 7.61955C20.2152 7.62721 20.3806 7.67825 20.5256 7.76781C20.6706 7.85736 20.7902 7.98248 20.8733 8.13127C20.9563 8.28007 20.9999 8.44761 21 8.618V15.382C20.9999 15.5524 20.9563 15.7199 20.8733 15.8687C20.7902 16.0175 20.6706 16.1426 20.5256 16.2322C20.3806 16.3218 20.2152 16.3728 20.045 16.3805C19.8748 16.3881 19.7054 16.3522 19.553 16.276L15 14M4 6H14C15.105 6 16 6.895 16 8V16C16 17.105 15.105 18 14 18H4C2.895 18 2 17.105 2 16V8C2 6.895 2.895 6 4 6Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M1 2L21 22"  stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- メインカメラエリア（全画面） -->
+        <main id="canvas-container" class="absolute inset-0 w-full h-full">
+            <!-- p5.jsがここにCanvasを生成します -->
+        </main>
+
+        <!-- 右上：文字入力状況表示UI -->
+        <div id="character-display" class="absolute top-20 right-20 z-10 rounded-lg p-4 w-40 sm:w-64 hidden" style="background-color: var(--char-display-bg-color);">
+            <div id="char-list" class="flex flex-col items-center space-y-3">
+                <!-- 文字がJavaScriptで動的に追加されます -->
+            </div>
+        </div>
+
+        <!-- ローディングとスタートボタン用のオーバーレイ -->
+        <div id="ui-overlay" class="absolute inset-0 z-10 flex flex-col justify-center items-center text-center p-4" style="background-color: var(--overlay-bg-color);">
+            <div id="loading-ui">
+                <p id="loading-message" class="text-lg mb-2">モデルを読み込んでいます...</p>
+                <div class="loader"></div>
+            </div>
+            <div id="start-ui" class="hidden">
+                <p id="start-message" class="text-lg mb-4">手のジェスチャーを検出できます</p>
+                <div class="flex flex-col space-y-3 items-center">
+                    <p class="text-sm" style="color: var(--muted-text-color);">手を動かしてジェスチャーを始めてください</p>
+                </div>
+            </div>
+            <div id="error-ui" class="hidden" style="color: var(--error-text-color);">
+                <p>エラーが発生しました。</p>
+                <p id="error-message" class="text-sm"></p>
+            </div>
+        </div>
+        </div>
+
+        <!-- 下部：ゲーム用のUI要素 (初期状態では非表示) -->
+        <div id="game-ui" class="absolute bottom-0 left-0 right-0 z-10 p-4 hidden" style="background: linear-gradient(to top, rgba(55, 55, 55, 0.9), rgba(55, 55, 55, 0));">
+            <div class="max-w-4xl mx-auto">
+                <div class="rounded-md p-3 mb-3 text-center" style="background-color: var(--game-info-bg-color);">
+                    <h5 class="font-semibold text-base">Target Text:</h5>
+                    <p id="message" class="text-xl font-mono tracking-wider break-words">Press the start button to begin</p>
+                </div>
+                <div>
+                    <div id="typing-input" class="w-full p-3 rounded-md text-xl font-mono tracking-wider text-center" style="background-color: var(--input-bg-color); color: var(--input-text-color); min-height: 50px; white-space: pre-wrap; word-break: break-all;"></div>
+                </div>
+                
+                <!-- エラーメッセージ表示エリア -->
+                <div id="error-message-display" class="mt-3 p-3 border rounded-md text-center hidden" style="background-color: var(--error-message-bg-color); border-color: var(--error-message-border-color); color: var(--error-message-text-color);">
+                    <div class="font-bold text-base">入力エラー</div>
+                    <div id="error-text" class="text-sm mt-1">間違った文字が入力されました。削除ジェスチャー (5,5) で削除してください。</div>
+                </div>
+                
+                <button id="restartButton" class="mt-4 hover:bg-green-600 font-bold py-2 px-4 rounded" style="background-color: var(--button-restart-bg-color); color: var(--button-text-color);"
+                        onmouseover="this.style.backgroundColor='var(--button-restart-hover-bg-color)'" 
+                        onmouseout="this.style.backgroundColor='var(--button-restart-bg-color)'">
+                    Restart
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ランキング表示エリア -->
+    <div class="w-full mt-8 p-4 text-center">
+        <h2 id="leaderboard-title" class="text-xl font-bold mb-2">Leaderboard</h2>
+        <p id="record" class="mb-2"></p>
+        <ol id="ranking" class="max-w-md mx-auto text-left"></ol>
     </div>
 
     <script type="module" src="sketch.js"></script>
 
-    <h2 id="leaderboard-title">Leaderboard</h2>
-    <p id="record"></p>
-    <ol id="ranking"></ol>
     <script type="module">
       import { loadRanking } from './script.js';
       function updateRanking() {
@@ -152,6 +196,19 @@
       setInterval(updateRanking, 10000);
     </script>
 
+    <!-- ページ遷移用のスクリプト -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // 初期状態の設定
+      const welcomePage = document.getElementById('welcome-page');
+      const gamePage = document.getElementById('game-page');
+      
+      // 初期状態：ウェルカムページを表示、ゲームページを非表示
+      welcomePage.classList.remove('hidden');
+      gamePage.classList.add('hidden');
+    });
+    </script>
+
     <!-- How to Play モーダル -->
 <div id="howToPlayModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 hidden p-0 m-0">
   <div class="relative w-screen h-screen flex items-center justify-center p-0 m-0 bg-transparent shadow-none rounded-none">
@@ -162,9 +219,11 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  // 遊び方モーダルの処理
   const howToPlayBtn = document.getElementById('howToPlayButton');
   const modal = document.getElementById('howToPlayModal');
   const closeBtn = document.getElementById('closeHowToPlayModal');
+  
   if (howToPlayBtn && modal && closeBtn) {
     howToPlayBtn.addEventListener('click', function() {
       modal.classList.remove('hidden');
@@ -179,6 +238,14 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
+  
+  // 初期状態の設定
+  const welcomePage = document.getElementById('welcome-page');
+  const gamePage = document.getElementById('game-page');
+  
+  // 初期状態：ウェルカムページを表示、ゲームページを非表示
+  welcomePage.classList.remove('hidden');
+  gamePage.classList.add('hidden');
 });
 </script>
 </body>

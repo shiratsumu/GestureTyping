@@ -98,10 +98,6 @@ const sketch = (p) => {
         // ▼▼▼【ここから修正】時間経過による表示制御を削除し、常に表示するように変更 ▼▼▼
         if (displayedChar) {
             p.push();
-            // テキスト描画時は座標系を元に戻す
-            // p.translate(p.width, 0);
-            // p.scale(-1, 1);
-            
             p.fill(255, 255, 255); // アルファ値を固定
             p.stroke(0);           // アルファ値を固定
             p.strokeWeight(5);
@@ -160,28 +156,28 @@ const sketch = (p) => {
             for (let i = startIndex; i < endIndex; i++) {
                 const char = currentTargetText[i];
                 const charContainer = document.createElement('div');
-                charContainer.className = 'text-center mb-4';
+                charContainer.className = 'text-center mb-2';
                 
                 // 文字要素を作成
                 const charElement = document.createElement('div');
                 
                 // 文字の状態に応じてスタイルを設定
                 if (i < currentInputIndex) {
-                    // 入力済み（正解）の文字 - 緑色で大きく
-                    charElement.className = 'text-green-600 text-3xl font-bold';
+                    // 入力済み（正解）の文字 - 緑色で小さく
+                    charElement.className = 'text-green-600 text-lg font-bold';
                     charElement.style.opacity = '0.8';
                 } else if (i === currentInputIndex) {
                     // 次に入力する文字 - エラー状態かどうかで色を変える
                     if (isErrorState) {
-                        charElement.className = 'text-red-600 text-6xl font-black';
+                        charElement.className = 'text-red-600 text-4xl font-black';
                         charElement.style.opacity = '1';
                     } else {
-                        charElement.className = 'text-gray-800 text-6xl font-black';
+                        charElement.className = 'text-gray-800 text-4xl font-black';
                         charElement.style.opacity = '1';
                     }
                 } else {
-                    // 今後入力する文字 - 大きめサイズ
-                    charElement.className = 'text-gray-600 text-3xl font-normal';
+                    // 今後入力する文字 - 中サイズ
+                    charElement.className = 'text-gray-600 text-lg font-normal';
                     charElement.style.opacity = '0.7';
                 }
                 
@@ -195,9 +191,9 @@ const sketch = (p) => {
                 if (gestureCode) {
                     codeElement.textContent = `(${gestureCode})`;
                     if (i === currentInputIndex) {
-                        codeElement.className = 'text-gray-600 text-lg font-medium mt-2';
+                        codeElement.className = 'text-gray-600 text-xs font-medium mt-1';
                     } else {
-                        codeElement.className = 'text-gray-400 text-lg font-light mt-2';
+                        codeElement.className = 'text-gray-400 text-xs font-light mt-1';
                         codeElement.style.opacity = '0.6';
                     }
                     charContainer.appendChild(codeElement);
@@ -252,14 +248,6 @@ let cam; // p5.jsのウェブカメラオブジェクト
     let cameraEnabled = false; // 初期状態ではカメラをOFFに変更
     let cameraInitialized = false; // カメラが初期化済みかどうか
 
-    // カメラ描画パラメータ（座標変換用）
-    let cameraDrawParams = {
-        drawX: 0,
-        drawY: 0,
-        drawWidth: 0,
-        drawHeight: 0
-    };
-
     function startCamera() {
         if (cameraInitialized) {
             // 既に初期化済みの場合は再開のみ
@@ -308,35 +296,27 @@ let cam; // p5.jsのウェブカメラオブジェクト
 
     // p5.jsの初期化関数
     p.setup = async () => {
-        // カメラの標準解像度に基づいてキャンバスサイズを設定
-        // MediaPipeは640x480での処理に最適化されているため、この比率を維持
-        const targetWidth = 640;
-        const targetHeight = 480;
+        // レスポンシブなキャンバスサイズを計算
+        let canvasWidth = Math.min(window.innerWidth - 32, 640); // 左右の余白を考慮
+        let canvasHeight = (canvasWidth * 3) / 4; // 4:3のアスペクト比を維持
         
-        // 画面全体にキャンバスを描画
-        let canvasWidth = window.innerWidth;
-        let canvasHeight = window.innerHeight;
+        // スマホサイズでの調整
+        if (window.innerWidth <= 640) {
+            canvasWidth = Math.min(window.innerWidth - 32, 480);
+            canvasHeight = (canvasWidth * 3) / 4;
+        }
         
         p.createCanvas(canvasWidth, canvasHeight);
         
         // HTMLのvideo要素を作成（非表示）
-        // カメラのサイズは標準解像度に固定し、キャンバスでスケーリング
         cam = p.createCapture(p.VIDEO);
-        cam.size(targetWidth, targetHeight); // 固定解像度でカメラを設定
+        cam.size(p.width, p.height);
         cam.hide();
-
+        
         // カメラは初期状態では起動しない
         cameraEnabled = false;
 
-        // デバッグ: サイズ情報をコンソールに出力
-        console.log(`Canvas size: ${p.width} x ${p.height}`);
-        console.log(`Camera target size: ${targetWidth} x ${targetHeight}`);
-        
-        // 初期のカメラ描画パラメータを設定
-        cameraDrawParams.drawX = 0;
-        cameraDrawParams.drawY = 0;
-        cameraDrawParams.drawWidth = canvasWidth;
-        cameraDrawParams.drawHeight = canvasHeight;        // ページ遷移のイベントリスナーを設定
+        // ページ遷移のイベントリスナーを設定
         setupPageNavigation();
 
         // ▼▼▼【修正点 1/3】UI要素を取得し、初期化処理を分離します ▼▼▼
@@ -367,80 +347,7 @@ let cam; // p5.jsのウェブカメラオブジェクト
         
         // MediaPipeモデルの初期化はゲーム開始時に遅延実行
         console.log("Setup complete - waiting for game start");
-        
-        // リスタートボタンの処理を追加
-        setupRestartButton();
     };
-
-    // ゲームリセット関数
-    function resetGameState() {
-        // ゲームの状態をリセット
-        game_mode.now = "ready";
-        firstGestureDetected = false;
-        game_start_time = 0;
-        countdownStartTime = 0;
-
-        // sample_texts を初期状態に戻す
-        sample_texts = [
-            "the quick brown fox jumps over the lazy dog",
-        ];
-
-        // ゲーム変数をリセット
-        displayedChar = '';
-        lastChar = '';
-        isMouthOpen = false;
-        wasMouthOpen = false;
-
-        // エラー状態もリセット
-        isErrorState = false;
-        errorCharCount = 0;
-        currentInputIndex = 0;
-        currentTargetText = "";
-
-        // UI要素をリセット
-        const messageElem = document.querySelector('#message');
-        const typingInput = document.querySelector('#typing-input');
-        const characterDisplay = document.querySelector('#character-display');
-        const recordElem = document.querySelector('#record');
-        
-        if (messageElem) messageElem.innerText = "Press the start button to begin";
-        if (typingInput) typingInput.textContent = "";
-        if (characterDisplay) characterDisplay.classList.add('hidden');
-        if (recordElem) recordElem.textContent = "";
-
-        // エラーメッセージを隠す
-        hideErrorMessage();
-        
-        // 文字表示UIを更新
-        updateCharacterDisplay();
-
-        console.log("Game state completely reset.");
-    }
-
-    // リスタートボタンの設定
-    function setupRestartButton() {
-        const restartButton = document.querySelector('#restartButton');
-        if (restartButton) {
-            restartButton.onclick = () => {
-                // ゲーム状態を完全にリセット
-                resetGameState();
-
-                // UIの状態をリセット
-                const uiOverlay = document.querySelector('#ui-overlay');
-                const gameUI = document.querySelector('#game-ui');
-                const loadingUI = document.querySelector('#loading-ui');
-                const startUI = document.querySelector('#start-ui');
-                
-                // スタート画面を表示し、ゲームUIを隠す
-                if (uiOverlay) uiOverlay.classList.remove('hidden'); 
-                if (gameUI) gameUI.classList.add('hidden');
-                if (loadingUI) loadingUI.classList.add('hidden');
-                if (startUI) startUI.classList.remove('hidden');
-                
-                console.log("Game restarted to ready state.");
-            };
-        }
-    }
 
     // ページナビゲーションの設定
     function setupPageNavigation() {
@@ -493,44 +400,100 @@ let cam; // p5.jsのウェブカメラオブジェクト
         // 戻るボタンのイベントリスナー
         if (backToWelcomeBtn) {
             backToWelcomeBtn.addEventListener('click', () => {
-                // ゲーム状態を完全にリセット
-                resetGameState();
-                
-                // ゲーム状態をウェルカムに変更
-                game_mode.now = "welcome";
-                
-                // ページ遷移
+                // ゲームページを非表示、ウェルカムページを表示
                 gamePage.classList.add('hidden');
                 welcomePage.classList.remove('hidden');
                 
                 // カメラを停止
                 stopCamera();
                 
+                // ゲーム状態をリセット
+                game_mode.now = "welcome";
+                firstGestureDetected = false;
+                
                 // UIをリセット
                 const uiOverlay = document.querySelector('#ui-overlay');
                 const gameUI = document.querySelector('#game-ui');
-                const loadingUI = document.querySelector('#loading-ui');
-                const startUI = document.querySelector('#start-ui');
-                const characterDisplay = document.querySelector('#character-display');
+                uiOverlay.classList.remove('hidden');
+                gameUI.classList.add('hidden');
                 
-                if (uiOverlay) uiOverlay.classList.remove('hidden');
-                if (gameUI) gameUI.classList.add('hidden');
-                if (loadingUI) loadingUI.classList.remove('hidden');
-                if (startUI) startUI.classList.add('hidden');
-                if (characterDisplay) characterDisplay.classList.add('hidden');
+                // エラーメッセージを隠す
+                hideErrorMessage();
                 
-                console.log("Returned to welcome page with complete reset");
+                console.log("Returned to welcome page");
             });
         }
     }
 
+            // ▼▼▼【ここから追加】ゲーム開始時にもエラー状態をリセット ▼▼▼
+            isErrorState = false;
+            errorCharCount = 0; // エラーカウントもリセット
+            currentInputIndex = 0;
+            currentTargetText = "";
+            hideErrorMessage();
+            // ▲▲▲【ここまで追加】▲▲▲
+        };
+
+        // ▼▼▼【ここから追加】リスタートボタンの処理 ▼▼▼
+        const restartButton = document.querySelector('#restartButton');
+        restartButton.onclick = () => {
+            // ゲームの状態をリセット
+            game_mode.now = "ready"; // ← "playing" から "ready" に変更
+            // game_start_time = p.millis(); // スタート時に設定するので不要
+
+            // sample_texts を初期状態に戻す
+            sample_texts = [
+                "the quick brown fox jumps over the lazy dog",
+            ];
+            // HTMLの表示を初期状態に戻す
+            document.querySelector('#message').innerText = "Press the start button to begin"; // ← スタート前のメッセージに変更
+            document.querySelector('#typing-input').textContent = "";
+            displayedChar = '';
+            lastChar = '';
+
+            // ▼▼▼【ここから追加】エラー状態もリセット ▼▼▼
+            isErrorState = false;
+            errorCharCount = 0; // エラーカウントもリセット
+            currentInputIndex = 0;
+            currentTargetText = "";
+            hideErrorMessage();
+            // ▲▲▲【ここまで追加】▲▲▲
+
+            // UIの状態をリセット
+            const uiOverlay = document.querySelector('#ui-overlay');
+            const gameUI = document.querySelector('#game-ui');
+            
+            // スタート画面を表示し、ゲームUIを隠す
+            uiOverlay.classList.remove('hidden'); 
+            gameUI.classList.add('hidden');
+            
+            // MediaPipeの検出はスタートボタンで開始するので、ここでは呼び出さない
+            // startDetection(cam.elt); 
+
+            console.log("Game reset to ready state.");
+        };
+        // ▲▲▲【ここまで追加】▲▲▲
+
+    };
+    
     // ウィンドウリサイズ時の処理
     p.windowResized = () => {
-        // 画面全体にキャンバスをリサイズ
-        p.resizeCanvas(window.innerWidth, window.innerHeight);
+        // レスポンシブなキャンバスサイズを再計算
+        let canvasWidth = Math.min(window.innerWidth - 32, 640);
+        let canvasHeight = (canvasWidth * 3) / 4;
         
-        // カメラサイズは固定解像度のまま維持
-        // cam.size(p.width, p.height); // この行を削除
+        // スマホサイズでの調整
+        if (window.innerWidth <= 640) {
+            canvasWidth = Math.min(window.innerWidth - 32, 480);
+            canvasHeight = (canvasWidth * 3) / 4;
+        }
+        
+        p.resizeCanvas(canvasWidth, canvasHeight);
+        
+        // カメラサイズも調整
+        if (cam) {
+            cam.size(p.width, p.height);
+        }
     };
 
     // p5.jsの毎フレーム描画関数
@@ -548,39 +511,7 @@ let cam; // p5.jsのウェブカメラオブジェクト
         // 背景にカメラ映像を描画
         p.background(127);
         if (cam && cameraEnabled) {
-            // カメラ映像を画面全体に描画（アスペクト比を保ちながらスケーリング）
-            let camAspect = 640 / 480; // カメラのアスペクト比
-            let canvasAspect = p.width / p.height;
-            
-            let drawWidth, drawHeight, drawX, drawY;
-            
-            if (canvasAspect > camAspect) {
-                // キャンバスの方が横長の場合
-                drawHeight = p.height;
-                drawWidth = drawHeight * camAspect;
-                drawX = (p.width - drawWidth) / 2;
-                drawY = 0;
-            } else {
-                // キャンバスの方が縦長の場合
-                drawWidth = p.width;
-                drawHeight = drawWidth / camAspect;
-                drawX = 0;
-                drawY = (p.height - drawHeight) / 2;
-            }
-            
-            // 描画パラメータを保存（座標変換で使用）
-            cameraDrawParams.drawX = drawX;
-            cameraDrawParams.drawY = drawY;
-            cameraDrawParams.drawWidth = drawWidth;
-            cameraDrawParams.drawHeight = drawHeight;
-            
-            // デバッグ情報（最初の数フレームのみ）
-            if (p.frameCount <= 5) {
-                console.log(`Camera draw params: x=${drawX}, y=${drawY}, w=${drawWidth}, h=${drawHeight}`);
-                console.log(`Canvas size: ${p.width} x ${p.height}`);
-            }
-            
-            p.image(cam, drawX, drawY, drawWidth, drawHeight);
+            p.image(cam, 0, 0, p.width, p.height);
         }
         
         // 描画のために再度反転（文字などが反転しないように）
@@ -649,10 +580,6 @@ let cam; // p5.jsのウェブカメラオブジェクト
         
         // ジェスチャー検出待機中の表示
         p.push();
-        // // テキスト描画時は座標系を元に戻す
-        // p.translate(p.width, 0);
-        // p.scale(-1, 1);
-        
         p.fill(255, 255, 255, 180);
         p.noStroke();
         p.rect(0, 0, p.width, p.height);
@@ -660,7 +587,7 @@ let cam; // p5.jsのウェブカメラオブジェクト
         p.fill(0);
         p.textAlign(p.CENTER, p.CENTER);
         p.textSize(20);
-        // p.text("手のジェスチャーを\n検出してください", p.width/2, p.height/2);
+        p.text("手のジェスチャーを\n検出してください", p.width/2, p.height/2);
         p.pop();
     }
 
@@ -694,10 +621,6 @@ let cam; // p5.jsのウェブカメラオブジェクト
         const countNumber = Math.ceil(remaining / 1000);
         
         p.push();
-        // // テキスト描画時は座標系を元に戻す
-        // p.translate(p.width, 0);
-        // p.scale(-1, 1);
-        
         p.fill(0, 0, 0, 150);
         p.noStroke();
         p.rect(0, 0, p.width, p.height);
@@ -713,26 +636,11 @@ let cam; // p5.jsのウェブカメラオブジェクト
     }
 
     /**
-     * MediaPipeの正規化座標をキャンバス座標に変換する関数
-     */
-    function normalizedToCanvasCoords(normalizedX, normalizedY) {
-        // MediaPipeの座標は0.0-1.0の正規化座標
-        // カメラ映像の実際の描画エリアに合わせてスケーリング
-        return {
-            x: cameraDrawParams.drawX + (normalizedX * cameraDrawParams.drawWidth),
-            y: cameraDrawParams.drawY + (normalizedY * cameraDrawParams.drawHeight)
-        };
-    }
-
-    /**
      * 顔ランドマークと口の状態を描画する関数
      */
     function drawFaceLandmarks() {
         if (!faceResults || !faceResults.faceLandmarks || faceResults.faceLandmarks.length === 0) {
-            // ゲーム中のみ口の状態を表示
-            if (game_mode.now === "playing") {
-                displayMouthStatus("顔検出なし");
-            }
+            displayMouthStatus("顔検出なし");
             smoothedFaceLandmarks = null;
             // ▼▼▼【ここから追加】顔検出がない場合、口の状態を更新 ▼▼▼
             wasMouthOpen = isMouthOpen;
@@ -771,7 +679,7 @@ let cam; // p5.jsのウェブカメラオブジェクト
             // ▲▲▲【ここまで追加】▲▲▲
 
             p.push(); // 現在の描画スタイル（変換行列、rectModeなど）を保存
-            // p.resetMatrix(); // 変換行列をリセット（原点が左上、反転なし） - これが問題の原因なのでコメントアウト
+            p.resetMatrix(); // 変換行列をリセット（原点が左上、反転なし）
             p.rectMode(p.CORNER); // 矩形の描画モードを左上隅基準に設定
             //口の状態に応じて画面を薄く変える
             if (mouthStatus === "OPEN") {
@@ -786,17 +694,11 @@ let cam; // p5.jsのウェブカメラオブジェクト
 
             // 唇に赤い点を描画
             p.fill('red');
-            const upperCoords = normalizedToCanvasCoords(upperLipPoint.x, upperLipPoint.y);
-            const lowerCoords = normalizedToCanvasCoords(lowerLipPoint.x, lowerLipPoint.y);
+            p.circle(p.width - upperLipPoint.x * p.width, upperLipPoint.y * p.height,8); // x座標を反転
+            p.circle(p.width - lowerLipPoint.x * p.width, lowerLipPoint.y * p.height, 8); // x座標を反転
             
-            // x座標を反転（鏡効果のため）
-            p.circle(p.width - upperCoords.x, upperCoords.y, 8);
-            p.circle(p.width - lowerCoords.x, lowerCoords.y, 8);
-            
-            // ゲーム中のみ口の状態テキストを表示
-            if (game_mode.now === "playing") {
-                displayMouthStatus(`口の状態: ${mouthStatus}`);
-            }
+            // 最後に口の状態テキストを表示
+            displayMouthStatus(`口の状態: ${mouthStatus}`);
         } else {
             // ▼▼▼【ここから追加】唇のランドマークが取得できない場合、口の状態を更新 ▼▼▼
             wasMouthOpen = isMouthOpen;
@@ -827,8 +729,7 @@ let cam; // p5.jsのウェブカメラオブジェクト
                 for (const landmark of landmarks) {
                     p.noStroke();
                     p.fill(100, 150, 210);
-                    const coords = normalizedToCanvasCoords(landmark.x, landmark.y);
-                    p.circle(p.width - coords.x, coords.y, 10); // x座標を反転
+                    p.circle(p.width - landmark.x * p.width, landmark.y * p.height, 10); // x座標を反転
                 }
 
                 // ジェスチャー名を描画
@@ -850,10 +751,9 @@ let cam; // p5.jsのウェブカメラオブジェクト
                     p.strokeWeight(2);
                     p.textSize(24);
                     p.textAlign(p.CENTER, p.CENTER);
-                    const handCoords = normalizedToCanvasCoords(handPos.x, handPos.y);
                     // x座標を反転
                     // ▼▼▼【ここから修正】表示するcategoryNameを変更 ▼▼▼
-                    p.text(`${displayCategoryName} (${score})`, p.width - handCoords.x, handCoords.y - 30);
+                    p.text(`${displayCategoryName} (${score})`, p.width - handPos.x * p.width, handPos.y * p.height - 30);
                     // ▲▲▲【ここまで修正】▲▲▲
                 }
             }
@@ -1133,7 +1033,7 @@ let cam; // p5.jsのウェブカメラオブジェクト
             let tw = p.textWidth(msg) + 40;
             let th = 50;
             let tx = p.width / 2;
-            let ty = th / 2 + 70; // 少し下にずらす
+            let ty = th / 2;
             p.rectMode(p.CENTER);
             p.fill(0, 150);
             p.noStroke();
