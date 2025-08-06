@@ -1,9 +1,14 @@
 import { initializeLandmarkers, startDetection, stopDetection, faceResults, gestureResults } from "./mediapipe_manager.js";
 import { submitScore, loadRanking } from "./script.js";
 
-// ▼▼▼【重要な修正】MediaPipe関数を即座にグローバルに公開 ▼▼▼
-// sketch関数の外でグローバル関数を公開することで、初期化タイミングの問題を解決
-window.initializeLandmarkers = initializeLandmarkers;
+// ▼▼▼【重要な修正】MediaPipe関数をグローバルに公開（冗長チェック追加） ▼▼▼
+// practice.htmlで既に公開されている場合は重複を避ける
+if (typeof window.initializeLandmarkers === 'undefined') {
+    window.initializeLandmarkers = initializeLandmarkers;
+    console.log("initializeLandmarkers exported to global scope from sketch.js");
+} else {
+    console.log("initializeLandmarkers already available in global scope");
+}
 
 // カメラ制御用のグローバル変数
 let globalCam = null;
@@ -87,6 +92,11 @@ const sketch = (p) => {
     
     // 時間経過モード用の設定
     const GESTURE_HOLD_TIME = 1000; // 1秒間同じジェスチャーを保持する時間
+    
+    // ▼▼▼【ここから追加】B方式用青い背景効果の変数 ▼▼▼
+    let blueEffectEndTime = 0; // 青い背景効果の終了時刻
+    const BLUE_EFFECT_DURATION = 200; // 青い背景効果の持続時間（ミリ秒）
+    // ▲▲▲【ここまで追加】▲▲▲
     
     // ▼▼▼【追加】実験用タイミング変数 ▼▼▼
     let trialStartTime = null; // 試行開始時刻
@@ -1045,12 +1055,23 @@ let cam; // p5.jsのウェブカメラオブジェクト
             p.push(); // 現在の描画スタイル（変換行列、rectModeなど）を保存
             // p.resetMatrix(); // 変換行列をリセット（原点が左上、反転なし） - これが問題の原因なのでコメントアウト
             p.rectMode(p.CORNER); // 矩形の描画モードを左上隅基準に設定
+            
             //口の状態に応じて画面を薄く変える
-            if (mouthStatus === "OPEN") {
+            // ▼▼▼【ここから修正】B方式での青い背景効果を追加 ▼▼▼
+            const isBlueEffectActive = (Date.now() < blueEffectEndTime); // 青い背景効果が有効かチェック
+            
+            if (inputMode === INPUT_MODE.TIME_HOLD && isBlueEffectActive) {
+                // B方式で文字確定時の青い背景効果
+                p.fill(33, 150, 243, 100);
+            } else if (mouthStatus === "OPEN") {
+                // A方式での口が開いている時の青い背景
                 p.fill(33, 150, 243, 100);
             } else {
+                // デフォルトのオレンジ背景
                 p.fill(255, 179, 0, 100);
             }
+            // ▲▲▲【ここまで修正】▲▲▲
+            
             p.noStroke();
             p.rect(0, 0, p.width, p.height);
             
@@ -1212,6 +1233,12 @@ let cam; // p5.jsのウェブカメラオブジェクト
                     
                     // 文字入力を実行
                     typeChar(c);
+                    
+                    // ▼▼▼【ここから追加】B方式での青い背景効果をトリガー ▼▼▼
+                    if (inputMode === INPUT_MODE.TIME_HOLD) {
+                        blueEffectEndTime = Date.now() + BLUE_EFFECT_DURATION;
+                    }
+                    // ▲▲▲【ここまで追加】▲▲▲
                     
                     // 実験用イベントを発火
                     const event = new CustomEvent('characterConfirmed', {

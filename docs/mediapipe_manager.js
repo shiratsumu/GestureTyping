@@ -15,34 +15,51 @@ let runningMode = "VIDEO";
 export async function initializeLandmarkers() {
     console.log("Initializing MediaPipe tasks...");
 
-    const filesetResolver = await FilesetResolver.forVisionTasks("./mediapipe_libs/wasm");
+    try {
+        const filesetResolver = await FilesetResolver.forVisionTasks("./mediapipe_libs/wasm");
+        console.log("FilesetResolver initialized successfully");
 
-    // FaceLandmarkerの作成
-    faceLandmarker = await FaceLandmarker.createFromOptions(filesetResolver, {
-        baseOptions: {
-            modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task`,
-            delegate: "GPU"
-        },
-        minFaceDetectionConfidence: 0.5,
-        minTrackingConfidence: 0.5,
-        runningMode: runningMode,
-        numFaces: 1
-    });
+        // FaceLandmarkerの作成
+        console.log("Creating FaceLandmarker...");
+        faceLandmarker = await FaceLandmarker.createFromOptions(filesetResolver, {
+            baseOptions: {
+                modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task`,
+                delegate: "GPU"
+            },
+            minFaceDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5,
+            runningMode: runningMode,
+            numFaces: 1
+        });
+        console.log("FaceLandmarker created successfully");
 
-    // GestureRecognizerの作成（カスタムモデルを使用）
-    gestureRecognizer = await GestureRecognizer.createFromOptions(filesetResolver, {
-        baseOptions: {
-            // ここでご自身のカスタムモデルを指定します
-            modelAssetPath: `./models/gesture_recognizer.task`,
-            delegate: "GPU"
-        },
-        runningMode: runningMode,
-        numHands: 2, // 検出する手の最大数
-        minHandDetectionConfidence: 0.5,
-        minTrackingConfidence: 0.5
-    });
+        // GestureRecognizerの作成（カスタムモデルを使用）
+        console.log("Creating GestureRecognizer...");
+        gestureRecognizer = await GestureRecognizer.createFromOptions(filesetResolver, {
+            baseOptions: {
+                // ここでご自身のカスタムモデルを指定します
+                modelAssetPath: `./models/gesture_recognizer.task`,
+                delegate: "GPU"
+            },
+            runningMode: runningMode,
+            numHands: 2, // 検出する手の最大数
+            minHandDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+        });
+        console.log("GestureRecognizer created successfully");
 
-    console.log("FaceLandmarker and GestureRecognizer created successfully.");
+        console.log("FaceLandmarker and GestureRecognizer created successfully.");
+    } catch (error) {
+        console.error("MediaPipe initialization error:", error);
+        // より詳細なエラー情報を提供
+        if (error.message.includes('fetch')) {
+            throw new Error(`ネットワークエラー: MediaPipeライブラリまたはモデルファイルの読み込みに失敗しました。${error.message}`);
+        } else if (error.message.includes('wasm')) {
+            throw new Error(`WebAssembly読み込みエラー: ブラウザがWebAssemblyをサポートしていないか、ファイルが見つかりません。${error.message}`);
+        } else {
+            throw new Error(`MediaPipe初期化エラー: ${error.message}`);
+        }
+    }
 }
 
 let video = null;

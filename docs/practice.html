@@ -134,6 +134,15 @@
         </div>
     </div>
 
+    <!-- MediaPipe初期化を先に行うスクリプト -->
+    <script type="module">
+        import { initializeLandmarkers } from './mediapipe_manager.js';
+        
+        // MediaPipe関数をグローバルスコープに即座に公開
+        window.initializeLandmarkers = initializeLandmarkers;
+        console.log("initializeLandmarkers exported to global scope");
+    </script>
+
     <!-- sketch.jsをインポート -->
     <script type="module" src="sketch.js"></script>
     
@@ -188,33 +197,34 @@
                 console.log("Starting MediaPipe initialization...");
                 document.getElementById('loading-ui').innerHTML = '<p class="text-lg mb-2">MediaPipeモデルを読み込んでいます...</p><div class="loader"></div><p class="text-sm mt-2">Step 1: Checking functions...</p>';
                 
-                // MediaPipeの初期化を待つ
-                if (typeof initializeLandmarkers !== 'undefined') {
+                // MediaPipeの初期化を待つ - より短いインターバルでチェック
+                console.log("Checking for initializeLandmarkers...", typeof window.initializeLandmarkers);
+                if (typeof window.initializeLandmarkers !== 'undefined') {
                     console.log("initializeLandmarkers found, calling directly...");
                     document.getElementById('loading-ui').innerHTML += '<p class="text-sm">Step 2: Calling initializeLandmarkers...</p>';
-                    await initializeLandmarkers();
+                    await window.initializeLandmarkers();
                 } else {
-                    console.log("initializeLandmarkers not found, waiting for sketch.js...");
-                    document.getElementById('loading-ui').innerHTML += '<p class="text-sm">Step 2: Waiting for sketch.js...</p>';
-                    // sketch.jsの読み込み完了を待つ
+                    console.log("initializeLandmarkers not found, waiting...");
+                    document.getElementById('loading-ui').innerHTML += '<p class="text-sm">Step 2: Waiting for MediaPipe initialization...</p>';
+                    // より短いインターバルで関数の存在をチェック
                     await new Promise((resolve, reject) => {
                         const checkInterval = setInterval(() => {
-                            console.log("Checking for initializeLandmarkers...", typeof initializeLandmarkers);
-                            if (typeof initializeLandmarkers !== 'undefined') {
+                            console.log("Checking for initializeLandmarkers...", typeof window.initializeLandmarkers);
+                            if (typeof window.initializeLandmarkers !== 'undefined') {
                                 clearInterval(checkInterval);
                                 resolve();
                             }
-                        }, 100);
+                        }, 50); // 50msインターバルに短縮
                         
-                        // 10秒後にタイムアウト
+                        // 15秒後にタイムアウト
                         setTimeout(() => {
                             clearInterval(checkInterval);
-                            reject(new Error('initializeLandmarkers function not found after 10 seconds'));
-                        }, 10000);
+                            reject(new Error('initializeLandmarkers function not found after 15 seconds'));
+                        }, 15000);
                     });
                     console.log("initializeLandmarkers found after waiting, calling...");
                     document.getElementById('loading-ui').innerHTML += '<p class="text-sm">Step 3: Found initializeLandmarkers, calling...</p>';
-                    await initializeLandmarkers();
+                    await window.initializeLandmarkers();
                 }
                 
                 console.log("MediaPipe initialization successful");

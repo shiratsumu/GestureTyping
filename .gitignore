@@ -6,5 +6,5 @@ dist/
 # Ignore log files
 *.log
 .vscode/
-# refarence files
-# .ref
+# reference files
+.ref
