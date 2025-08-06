@@ -118,98 +118,7 @@
                 </div>
             </div>
 
-            <!-- 追加の疲労度評価 -->
-            <div class="bg-gray-700 rounded-lg p-6">
-                <h2 class="text-xl font-semibold mb-4">
-                    クロス評価
-                </h2>
-                
-                <div class="mb-6">
-                    <label class="block text-lg font-semibold mb-3">
-                        手のジェスチャーと口の開閉による入力のお口の疲労度
-                    </label>
-                    <div class="grid grid-cols-5 gap-4">
-                        <label class="text-center">
-                            <input type="radio" name="mouthFatigue_A" value="1" class="mb-2 scale-125">
-                            <div class="text-sm">
-                                <div class="font-semibold">1</div>
-                                <div class="text-gray-300">全く疲れない</div>
-                            </div>
-                        </label>
-                        <label class="text-center">
-                            <input type="radio" name="mouthFatigue_A" value="2" class="mb-2 scale-125">
-                            <div class="text-sm">
-                                <div class="font-semibold">2</div>
-                                <div class="text-gray-300">少し疲れる</div>
-                            </div>
-                        </label>
-                        <label class="text-center">
-                            <input type="radio" name="mouthFatigue_A" value="3" class="mb-2 scale-125">
-                            <div class="text-sm">
-                                <div class="font-semibold">3</div>
-                                <div class="text-gray-300">どちらでもない</div>
-                            </div>
-                        </label>
-                        <label class="text-center">
-                            <input type="radio" name="mouthFatigue_A" value="4" class="mb-2 scale-125">
-                            <div class="text-sm">
-                                <div class="font-semibold">4</div>
-                                <div class="text-gray-300">疲れる</div>
-                            </div>
-                        </label>
-                        <label class="text-center">
-                            <input type="radio" name="mouthFatigue_A" value="5" class="mb-2 scale-125">
-                            <div class="text-sm">
-                                <div class="font-semibold">5</div>
-                                <div class="text-gray-300">とても疲れる</div>
-                            </div>
-                        </label>
-                    </div>
-                </div>
 
-                <div class="mb-6">
-                    <label class="block text-lg font-semibold mb-3">
-                        手のみのジェスチャー使用時の手の疲労度
-                    </label>
-                    <div class="grid grid-cols-5 gap-4">
-                        <label class="text-center">
-                            <input type="radio" name="handFatigue_B" value="1" class="mb-2 scale-125">
-                            <div class="text-sm">
-                                <div class="font-semibold">1</div>
-                                <div class="text-gray-300">全く疲れない</div>
-                            </div>
-                        </label>
-                        <label class="text-center">
-                            <input type="radio" name="handFatigue_B" value="2" class="mb-2 scale-125">
-                            <div class="text-sm">
-                                <div class="font-semibold">2</div>
-                                <div class="text-gray-300">少し疲れる</div>
-                            </div>
-                        </label>
-                        <label class="text-center">
-                            <input type="radio" name="handFatigue_B" value="3" class="mb-2 scale-125">
-                            <div class="text-sm">
-                                <div class="font-semibold">3</div>
-                                <div class="text-gray-300">どちらでもない</div>
-                            </div>
-                        </label>
-                        <label class="text-center">
-                            <input type="radio" name="handFatigue_B" value="4" class="mb-2 scale-125">
-                            <div class="text-sm">
-                                <div class="font-semibold">4</div>
-                                <div class="text-gray-300">疲れる</div>
-                            </div>
-                        </label>
-                        <label class="text-center">
-                            <input type="radio" name="handFatigue_B" value="5" class="mb-2 scale-125">
-                            <div class="text-sm">
-                                <div class="font-semibold">5</div>
-                                <div class="text-gray-300">とても疲れる</div>
-                            </div>
-                        </label>
-                    </div>
-                </div>
-            </div>
 
             <div class="flex justify-between">
                 <button 
@@ -257,7 +166,7 @@
             const formData = new FormData(this);
             
             // 必須項目チェック
-            const requiredFields = ['handFatigue_A', 'mouthFatigue_A', 'handFatigue_B', 'mouthFatigue_B'];
+            const requiredFields = ['handFatigue_A', 'mouthFatigue_B'];
             for (const field of requiredFields) {
                 if (!formData.get(field)) {
                     alert('すべての項目を評価してください');
@@ -268,9 +177,7 @@
             // 疲労度データを保存
             const fatigueData = {
                 [`handFatigue_${currentCondition}`]: parseInt(formData.get('handFatigue_A')),
-                [`mouthFatigue_${currentCondition}`]: parseInt(formData.get('mouthFatigue_A')),
-                [`handFatigue_${currentCondition === 'A' ? 'B' : 'A'}`]: parseInt(formData.get('handFatigue_B')),
-                [`mouthFatigue_${currentCondition === 'A' ? 'B' : 'A'}`]: parseInt(formData.get('mouthFatigue_B'))
+                [`mouthFatigue_${currentCondition === 'A' ? 'A' : 'B'}`]: parseInt(formData.get('mouthFatigue_B'))
             };
             
             // 既存の疲労度データとマージ
