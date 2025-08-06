@@ -29,6 +29,19 @@
       --error-message-border-color: #f87171;
       --error-message-text-color: #b91c1c;
     }
+    
+    /* チュートリアル関連のスタイル */
+    .tutorial-indicator.active {
+        background-color: white !important;
+    }
+    
+    #tutorialModal button:hover {
+        transform: scale(1.05);
+    }
+    
+    #tutorialImage {
+        transition: opacity 0.3s ease-in-out;
+    }
     </style>
 </head>
 <body style="background-color: var(--body-bg-color); color: var(--body-text-color);">
@@ -41,9 +54,15 @@
     <!-- 上部ヘッダー：実験情報 -->
     <header class="absolute top-0 left-0 right-0 z-20 p-4" style="background: linear-gradient(to bottom, rgba(55, 55, 55, 0.9), rgba(55, 55, 55, 0));">
         <div class="flex items-center justify-between">
-            <button id="backBtn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg" onclick="goBack()">
-                ← 戻る
-            </button>
+            <div class="flex items-center">
+                <button id="backBtn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg mr-3" onclick="goBack()">
+                    ← 戻る
+                </button>
+                <!-- ゲーム中の「やり方を見る」ボタン（実験では非表示） -->
+                <button id="tutorialBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg hidden" onclick="showTutorial()">
+                    やり方を見る
+                </button>
+            </div>
             <div class="text-center">
                 <h1 class="text-lg font-bold" id="experimentTitle">実験セッション</h1>
                 <p class="text-sm" style="color: var(--muted-text-color);" id="experimentSubtitle">
@@ -149,6 +168,38 @@
         </div>
     </div>
 
+    <!-- チュートリアルモーダル -->
+    <div id="tutorialModal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50" onclick="hideTutorialOnBlankClick(event)">
+        <div class="relative w-4/5 h-4/5 max-w-4xl max-h-4xl" onclick="event.stopPropagation()">
+            <!-- チュートリアル画像 -->
+            <div class="relative w-full h-full flex items-center justify-center">
+                <img id="tutorialImage" src="" alt="チュートリアル" class="max-w-full max-h-full object-contain rounded-lg shadow-lg">
+                
+                <!-- 左矢印 -->
+                <button id="prevTutorial" class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white rounded-full w-12 h-12 flex items-center justify-center text-2xl transition-all duration-200" onclick="previousTutorialImage()">
+                    ‹
+                </button>
+                
+                <!-- 右矢印 -->
+                <button id="nextTutorial" class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white rounded-full w-12 h-12 flex items-center justify-center text-2xl transition-all duration-200" onclick="nextTutorialImage()">
+                    ›
+                </button>
+                
+                <!-- 閉じるボタン -->
+                <button class="absolute top-4 right-4 bg-black bg-opacity-50 hover:bg-opacity-70 text-white rounded-full w-10 h-10 flex items-center justify-center text-xl transition-all duration-200" onclick="hideTutorial()">
+                    ×
+                </button>
+                
+                <!-- ページインジケーター -->
+                <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                    <div class="tutorial-indicator w-3 h-3 rounded-full bg-white bg-opacity-50 transition-all duration-200" data-index="0"></div>
+                    <div class="tutorial-indicator w-3 h-3 rounded-full bg-white bg-opacity-50 transition-all duration-200" data-index="1"></div>
+                    <div class="tutorial-indicator w-3 h-3 rounded-full bg-white bg-opacity-50 transition-all duration-200" data-index="2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- MediaPipe初期化を先に行うスクリプト -->
     <script type="module">
         import { initializeLandmarkers } from './mediapipe_manager.js';
@@ -170,6 +221,10 @@
         let timerInterval = null;
         let trialActive = false;
         let currentPhrase = '';
+        
+        // チュートリアル関連の変数
+        let currentTutorialIndex = 0;
+        let tutorialImages = [];
         
         // 実験用フレーズプール（phrases2.txtから読み込み）
         let experimentPhrases = [];
@@ -236,6 +291,21 @@
             const conditionName = currentCondition === 'A' ? '手のジェスチャー（リップクリック）' : 'お口のジェスチャー（時間経過）';
             document.getElementById('experimentSubtitle').textContent = 
                 `条件${currentCondition}（${conditionName}）- 試行 ${currentTrial}/3`;
+            
+            // チュートリアル画像を設定
+            if (currentCondition === 'A') {
+                tutorialImages = [
+                    'images/tutorial-1A.png',
+                    'images/tutorial-2A.png',
+                    'images/tutorial-3.png'
+                ];
+            } else {
+                tutorialImages = [
+                    'images/tutorial-1B.png',
+                    'images/tutorial-2B.png',
+                    'images/tutorial-3.png'
+                ];
+            }
         }
 
         async function initializeMediaPipe() {
@@ -467,6 +537,76 @@
             console.log('Character confirmed and logged:', data.character, 
                 data.character === 'GAME_STARTED' ? `(Game start time: ${new Date(data.t_select).toISOString()})` : '',
                 `(Time: ${new Date(data.t_confirm).toISOString()})`); // タイムスタンプを追加
+        });
+
+        // チュートリアル関連の関数
+        window.showTutorial = function() {
+            currentTutorialIndex = 0;
+            updateTutorialImage();
+            document.getElementById('tutorialModal').classList.remove('hidden');
+            document.getElementById('tutorialModal').classList.add('flex');
+        };
+
+        window.hideTutorial = function() {
+            document.getElementById('tutorialModal').classList.add('hidden');
+            document.getElementById('tutorialModal').classList.remove('flex');
+        };
+
+        window.hideTutorialOnBlankClick = function(event) {
+            if (event.target === document.getElementById('tutorialModal')) {
+                hideTutorial();
+            }
+        };
+
+        window.nextTutorialImage = function() {
+            if (currentTutorialIndex < tutorialImages.length - 1) {
+                currentTutorialIndex++;
+                updateTutorialImage();
+            }
+        };
+
+        window.previousTutorialImage = function() {
+            if (currentTutorialIndex > 0) {
+                currentTutorialIndex--;
+                updateTutorialImage();
+            }
+        };
+
+        function updateTutorialImage() {
+            const tutorialImage = document.getElementById('tutorialImage');
+            const indicators = document.querySelectorAll('.tutorial-indicator');
+            
+            // 画像を更新
+            tutorialImage.src = tutorialImages[currentTutorialIndex];
+            
+            // インジケーターを更新
+            indicators.forEach((indicator, index) => {
+                if (index === currentTutorialIndex) {
+                    indicator.classList.add('active');
+                } else {
+                    indicator.classList.remove('active');
+                }
+            });
+            
+            // 矢印ボタンの表示/非表示
+            const prevBtn = document.getElementById('prevTutorial');
+            const nextBtn = document.getElementById('nextTutorial');
+            
+            prevBtn.style.display = currentTutorialIndex === 0 ? 'none' : 'flex';
+            nextBtn.style.display = currentTutorialIndex === tutorialImages.length - 1 ? 'none' : 'flex';
+        }
+
+        // キーボードサポート（矢印キー）
+        document.addEventListener('keydown', function(event) {
+            if (document.getElementById('tutorialModal').classList.contains('flex')) {
+                if (event.key === 'ArrowLeft') {
+                    previousTutorialImage();
+                } else if (event.key === 'ArrowRight') {
+                    nextTutorialImage();
+                } else if (event.key === 'Escape') {
+                    hideTutorial();
+                }
+            }
         });
 
         // sketch.jsからの文章完了イベントを受信

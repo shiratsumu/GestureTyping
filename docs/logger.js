@@ -118,9 +118,31 @@ export class Logger {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const result = await response.text();
-      console.log('Data sent successfully:', result);
-      return result;
+      // レスポンスをJSONとして解析を試行
+      let result;
+      const contentType = response.headers.get('content-type');
+      
+      if (contentType && contentType.includes('application/json')) {
+        result = await response.json();
+        
+        // GASからの成功/失敗を確認
+        if (result.status === 'error') {
+          throw new Error(`GAS Error: ${result.message}`);
+        }
+        
+        console.log('Data sent successfully:', result);
+        return result;
+      } else {
+        // テキストレスポンスの場合（後方互換性）
+        result = await response.text();
+        
+        if (result.includes('ERROR')) {
+          throw new Error(`GAS Error: ${result}`);
+        }
+        
+        console.log('Data sent successfully:', result);
+        return { status: 'success', message: result };
+      }
 
     } catch (error) {
       console.error('Failed to send data to GAS:', error);

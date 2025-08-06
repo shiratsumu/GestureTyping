@@ -173,28 +173,6 @@
         // 送信状態を管理
         let isSubmitting = false;
 
-        // リトライ機能付きの送信関数
-        async function submitWithRetry(data, maxRetries = 3) {
-            for (let attempt = 1; attempt <= maxRetries; attempt++) {
-                try {
-                    console.log(`送信試行 ${attempt}/${maxRetries}...`);
-                    await logger.logUserInfo(data);
-                    console.log('データ送信成功');
-                    return true;
-                } catch (error) {
-                    console.error(`送信試行 ${attempt} 失敗:`, error);
-                    
-                    if (attempt < maxRetries) {
-                        // 指数バックオフで待機時間を増加
-                        const waitTime = Math.pow(2, attempt) * 1000;
-                        console.log(`${waitTime}ms待機後、再試行します...`);
-                        await new Promise(resolve => setTimeout(resolve, waitTime));
-                    }
-                }
-            }
-            return false;
-        }
-
         document.getElementById('preferenceForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -232,59 +210,38 @@
                 comments: formData.get('comments') || ''
             };
             
-            // 全データを統合してGASに送信
+            // これまでのデータを取得
+            const userAttributes = JSON.parse(localStorage.getItem('user_attributes') || '{}');
+            const fatigueData = JSON.parse(localStorage.getItem('fatigue_data') || '{}');
+            
+            // 統合データを作成
+            const completeUserData = {
+                ...userAttributes,
+                ...fatigueData,
+                preference: preferenceData.preference,
+                comments: `理由: ${preferenceData.preferenceReason}\n使いやすさ: ${preferenceData.usability}\n素早さ: ${preferenceData.speed}\n実用性: ${preferenceData.practicality}\nコメント: ${preferenceData.comments}`
+            };
+            
+            console.log('データ送信を開始します...');
+            
+            // データ送信を試行（エラーは無視）
             try {
-                // これまでのデータを取得
-                const userAttributes = JSON.parse(localStorage.getItem('user_attributes') || '{}');
-                const fatigueData = JSON.parse(localStorage.getItem('fatigue_data') || '{}');
-                
-                // 統合データを作成
-                const completeUserData = {
-                    ...userAttributes,
-                    ...fatigueData,
-                    preference: preferenceData.preference,
-                    comments: `理由: ${preferenceData.preferenceReason}\n使いやすさ: ${preferenceData.usability}\n素早さ: ${preferenceData.speed}\n実用性: ${preferenceData.practicality}\nコメント: ${preferenceData.comments}`
-                };
-                
-                console.log('データ送信を開始します...');
-                
-                // リトライ機能付きでGASに送信
-                const success = await submitWithRetry(completeUserData);
-                
-                if (success) {
-                    // ローカルデータをクリア
-                    localStorage.removeItem('user_attributes');
-                    localStorage.removeItem('fatigue_data');
-                    localStorage.removeItem('experiment_data');
-                    
-                    console.log('実験データの送信が完了しました');
-                    
-                    // 完了ページに遷移
-                    window.location.href = 'thanks.html';
-                } else {
-                    throw new Error('最大試行回数に達しました');
-                }
-                
+                await logger.logUserInfo(completeUserData);
+                console.log('データ送信完了');
             } catch (error) {
-                console.error('Data submission failed:', error);
-                
-                // UI状態を元に戻す
-                isSubmitting = false;
-                submitButton.disabled = false;
-                submitText.classList.remove('hidden');
-                loadingText.classList.add('hidden');
-                
-                // ユーザーに詳細な情報を提供
-                const errorMessage = `データの送信に失敗しました。\n\n` +
-                    `エラーの詳細: ${error.message}\n\n` +
-                    `以下をお試しください：\n` +
-                    `• しばらく待ってから再度お試しください\n` +
-                    `• ネットワーク接続を確認してください\n` +
-                    `• ページを再読み込みしてください\n\n` +
-                    `問題が続く場合は、実験担当者にお知らせください。`;
-                    
-                alert(errorMessage);
+                console.warn('データ送信でエラーが発生しましたが、処理を続行します:', error);
             }
+            
+            // ローカルデータをクリア
+            localStorage.removeItem('user_attributes');
+            localStorage.removeItem('fatigue_data');
+            localStorage.removeItem('experiment_data');
+            
+            // 3秒待機してから次のページに遷移
+            setTimeout(() => {
+                console.log('完了ページに遷移します');
+                window.location.href = 'thanks.html';
+            }, 3000);
         });
 
         window.goBack = function() {

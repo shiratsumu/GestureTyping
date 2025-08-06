@@ -1,7 +1,7 @@
 // 環境設定ファイル
 export const config = {
   // Google Apps Script のWebアプリURL
-  GAS_URL: "https://script.google.com/macros/s/AKfycbwq1V3Mr5DFcB63CGBChr_XERGCxjh-SYb2YSIYYBV1w2LxYoiWyUqWmIKMbHfI3hKB8Q/exec",
+  GAS_URL: "https://script.google.com/macros/s/AKfycbycWIHf9XHg65fJ1ivWzneBNFOYJ06JWEwInMr4YHiM6x7Vq3zKfgzUJNcaq4pTI04vrQ/exec",
   
   // CORS対応用プロキシ（開発時のみ）
   CORS_PROXY: "https://corsproxy.io/?",

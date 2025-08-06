@@ -29,6 +29,19 @@
       --error-message-border-color: #f87171;
       --error-message-text-color: #b91c1c;
     }
+    
+    /* チュートリアル関連のスタイル */
+    .tutorial-indicator.active {
+        background-color: white !important;
+    }
+    
+    #tutorialModal button:hover {
+        transform: scale(1.05);
+    }
+    
+    #tutorialImage {
+        transition: opacity 0.3s ease-in-out;
+    }
     </style>
 </head>
 <body style="background-color: var(--body-bg-color); color: var(--body-text-color);">
@@ -41,9 +54,15 @@
     <!-- 上部ヘッダー：練習情報 -->
     <header class="absolute top-0 left-0 right-0 z-20 p-4" style="background: linear-gradient(to bottom, rgba(55, 55, 55, 0.9), rgba(55, 55, 55, 0));">
         <div class="flex items-center justify-between">
-            <button id="backBtn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg" onclick="goBack()">
-                ← 戻る
-            </button>
+            <div class="flex items-center">
+                <button id="backBtn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg mr-3" onclick="goBack()">
+                    ← 戻る
+                </button>
+                <!-- ゲーム中の「やり方を見る」ボタン -->
+                <button id="tutorialBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg hidden" onclick="showTutorial()">
+                    やり方を見る
+                </button>
+            </div>
             <div class="text-center">
                 <h1 class="text-xl font-bold" id="practiceTitle">練習セッション</h1>
                 <p class="text-sm" style="color: var(--muted-text-color);" id="practiceSubtitle">
@@ -76,9 +95,12 @@
                 <p class="text-gray-300 mb-4" id="modeInstructions">
                     手でジェスチャーを作り、口を開いて閉じることで文字を確定します。
                 </p>
-                <p class="text-sm text-gray-400">
+                <p class="text-sm text-gray-400 mb-4">
                     2分間の練習時間です。自由にタイピングして操作に慣れてください。
                 </p>
+                <button class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded-lg mb-4 w-full" onclick="showTutorial()">
+                    📖 やり方を見る
+                </button>
             </div>
             <button id="startPracticeBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg" onclick="startPractice()">
                 練習を開始する
@@ -134,6 +156,38 @@
         </div>
     </div>
 
+    <!-- チュートリアルモーダル -->
+    <div id="tutorialModal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50" onclick="hideTutorialOnBlankClick(event)">
+        <div class="relative w-4/5 h-4/5 max-w-4xl max-h-4xl" onclick="event.stopPropagation()">
+            <!-- チュートリアル画像 -->
+            <div class="relative w-full h-full flex items-center justify-center">
+                <img id="tutorialImage" src="" alt="チュートリアル" class="max-w-full max-h-full object-contain rounded-lg shadow-lg">
+                
+                <!-- 左矢印 -->
+                <button id="prevTutorial" class="absolute left-4 top-1/2 transform translate-x-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white rounded-full w-12 h-12 flex items-center justify-center text-2xl transition-all duration-200" onclick="previousTutorialImage()">
+                    ‹
+                </button>
+                
+                <!-- 右矢印 -->
+                <button id="nextTutorial" class="absolute right-4 top-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white rounded-full w-12 h-12 flex items-center justify-center text-2xl transition-all duration-200" onclick="nextTutorialImage()">
+                    ›
+                </button>
+                
+                <!-- 閉じるボタン -->
+                <button class="absolute top-4 right-4 bg-black bg-opacity-50 hover:bg-opacity-70 text-white rounded-full w-10 h-10 flex items-center justify-center text-xl transition-all duration-200" onclick="hideTutorial()">
+                    ×
+                </button>
+                
+                <!-- ページインジケーター -->
+                <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                    <div class="tutorial-indicator w-3 h-3 rounded-full bg-white bg-opacity-50 transition-all duration-200" data-index="0"></div>
+                    <div class="tutorial-indicator w-3 h-3 rounded-full bg-white bg-opacity-50 transition-all duration-200" data-index="1"></div>
+                    <div class="tutorial-indicator w-3 h-3 rounded-full bg-white bg-opacity-50 transition-all duration-200" data-index="2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- MediaPipe初期化を先に行うスクリプト -->
     <script type="module">
         import { initializeLandmarkers } from './mediapipe_manager.js';
@@ -154,6 +208,11 @@
         let totalPracticeTime = 120; // 2分
         let timeRemaining = totalPracticeTime;
         let practiceStarted = false;
+        
+        // チュートリアル関連の変数
+        let currentTutorialIndex = 0;
+        let tutorialImages = [];
+        let tutorialShownOnStart = false;
 
         // 練習用フレーズプール（短めで練習しやすいもの）
         const practiceePhrases = [
@@ -177,18 +236,29 @@
         });
 
         function updateUIForCondition() {
-            const conditionName = currentCondition === 'A' ? '手のジェスチャー（リップクリック）' : 'お口のジェスチャー（時間経過）';
+            const conditionName = currentCondition === 'A' ? '手のジェスチャー（リップクリック）' : '手のみジェスチャー（時間経過）';
             
             document.getElementById('practiceSubtitle').textContent = `条件${currentCondition}（${conditionName}）`;
             
+            // チュートリアル画像を設定
             if (currentCondition === 'A') {
                 document.getElementById('modeDescription').textContent = '手のジェスチャー練習';
                 document.getElementById('modeInstructions').textContent = 
                     '手でジェスチャーを作り、口を開いて閉じることで文字を確定します。';
+                tutorialImages = [
+                    'images/tutorial-1A.png',
+                    'images/tutorial-2A.png',
+                    'images/tutorial-3.png'
+                ];
             } else {
-                document.getElementById('modeDescription').textContent = 'お口のジェスチャー練習';
+                document.getElementById('modeDescription').textContent = '時間経過の手のみのジェスチャー練習';
                 document.getElementById('modeInstructions').textContent = 
                     '手でジェスチャーを作り、1秒間保持することで文字を確定します。';
+                tutorialImages = [
+                    'images/tutorial-1B.png',
+                    'images/tutorial-2B.png',
+                    'images/tutorial-3.png'
+                ];
             }
         }
 
@@ -274,6 +344,15 @@
                 // UIの切り替え
                 document.getElementById('ui-overlay').classList.add('hidden');
                 document.getElementById('game-ui').classList.remove('hidden');
+                document.getElementById('tutorialBtn').classList.remove('hidden');
+                
+                // 練習開始時にチュートリアルを表示
+                if (!tutorialShownOnStart) {
+                    tutorialShownOnStart = true;
+                    setTimeout(() => {
+                        showTutorial();
+                    }, 500);
+                }
                 
                 // カウントダウン開始
                 startCountdown();
@@ -364,6 +443,76 @@
         window.proceedToExperiment = function() {
             window.location.href = `experiment.html?cond=${currentCondition}&trial=1`;
         };
+
+        // チュートリアル関連の関数
+        window.showTutorial = function() {
+            currentTutorialIndex = 0;
+            updateTutorialImage();
+            document.getElementById('tutorialModal').classList.remove('hidden');
+            document.getElementById('tutorialModal').classList.add('flex');
+        };
+
+        window.hideTutorial = function() {
+            document.getElementById('tutorialModal').classList.add('hidden');
+            document.getElementById('tutorialModal').classList.remove('flex');
+        };
+
+        window.hideTutorialOnBlankClick = function(event) {
+            if (event.target === document.getElementById('tutorialModal')) {
+                hideTutorial();
+            }
+        };
+
+        window.nextTutorialImage = function() {
+            if (currentTutorialIndex < tutorialImages.length - 1) {
+                currentTutorialIndex++;
+                updateTutorialImage();
+            }
+        };
+
+        window.previousTutorialImage = function() {
+            if (currentTutorialIndex > 0) {
+                currentTutorialIndex--;
+                updateTutorialImage();
+            }
+        };
+
+        function updateTutorialImage() {
+            const tutorialImage = document.getElementById('tutorialImage');
+            const indicators = document.querySelectorAll('.tutorial-indicator');
+            
+            // 画像を更新
+            tutorialImage.src = tutorialImages[currentTutorialIndex];
+            
+            // インジケーターを更新
+            indicators.forEach((indicator, index) => {
+                if (index === currentTutorialIndex) {
+                    indicator.classList.add('active');
+                } else {
+                    indicator.classList.remove('active');
+                }
+            });
+            
+            // 矢印ボタンの表示/非表示
+            const prevBtn = document.getElementById('prevTutorial');
+            const nextBtn = document.getElementById('nextTutorial');
+            
+            prevBtn.style.display = currentTutorialIndex === 0 ? 'none' : 'flex';
+            nextBtn.style.display = currentTutorialIndex === tutorialImages.length - 1 ? 'none' : 'flex';
+        }
+
+        // キーボードサポート（矢印キー）
+        document.addEventListener('keydown', function(event) {
+            if (document.getElementById('tutorialModal').classList.contains('flex')) {
+                if (event.key === 'ArrowLeft') {
+                    previousTutorialImage();
+                } else if (event.key === 'ArrowRight') {
+                    nextTutorialImage();
+                } else if (event.key === 'Escape') {
+                    hideTutorial();
+                }
+            }
+        });
 
         // sketch.jsからの文章完了イベントを受信（練習では新しいフレーズに自動変更）
         window.addEventListener('sentenceCompleted', (event) => {
