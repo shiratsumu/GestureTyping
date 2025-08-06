@@ -1,6 +1,7 @@
 const GAS_URL =
   window.GAS_URL ||
-  "https://script.google.com/macros/s/AKfycbxPqNcqwLsebxaCfocbxGild3y8s5Wxx7URc6Ftdcr1b1kh7WEbgpo7g8nVJv6gymuq/exec";
+  "https://script.google.com/macros/s/AKfycbwq1V3Mr5DFcB63CGBChr_XERGCxjh-SYb2YSIYYBV1w2LxYoiWyUqWmIKMbHfI3hKB8Q/exec";
+// "https://script.google.com/macros/s/AKfycbxPqNcqwLsebxaCfocbxGild3y8s5Wxx7URc6Ftdcr1b1kh7WEbgpo7g8nVJv6gymuq/exec";
 // Use a simple proxy to work around CORS restrictions during local testing.
 const CORS_PROXY = window.CORS_PROXY || "https://corsproxy.io/?";
 function safeRandomId() {

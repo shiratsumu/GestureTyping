@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>好み評価</title>
+    <link rel="icon" href="images/Gesture-icon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-800 text-white min-h-screen p-4">
+    <div class="max-w-3xl mx-auto">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold">好み評価</h1>
+            <p class="text-gray-300 mt-2">
+                2つの入力方法について、あなたの好みを教えてください
+            </p>
+        </div>
+
+        <form id="preferenceForm" class="space-y-8">
+            <!-- 全体的な好み -->
+            <div class="bg-gray-700 rounded-lg p-6">
+                <h2 class="text-xl font-semibold mb-4">
+                    全体的な好み
+                </h2>
+                
+                <div class="mb-6">
+                    <label class="block text-lg font-semibold mb-3">
+                        どちらの入力方法が好みでしたか？
+                    </label>
+                    <div class="space-y-3">
+                        <label class="flex items-center">
+                            <input type="radio" name="preference" value="A" class="mr-3 scale-125">
+                            <span class="text-lg">条件A: 手のジェスチャーと口の開閉による入力</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="preference" value="B" class="mr-3 scale-125">
+                            <span class="text-lg">条件B: 手のみのジェスチャー</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="preference" value="どちらでもない" class="mr-3 scale-125">
+                            <span class="text-lg">どちらでもない</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-lg font-semibold mb-3">
+                        その理由を教えてください（任意）
+                    </label>
+                    <textarea 
+                        name="preferenceReason"
+                        rows="3"
+                        class="w-full bg-gray-600 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="例: 手のジェスチャーの方が直感的だった、疲れにくかった、など"
+                    ></textarea>
+                </div>
+            </div>
+
+            <!-- 詳細評価 -->
+            <div class="bg-gray-700 rounded-lg p-6">
+                <h2 class="text-xl font-semibold mb-4">
+                    詳細評価
+                </h2>
+
+                <!-- 使いやすさ -->
+                <div class="mb-6">
+                    <label class="block text-lg font-semibold mb-3">
+                        使いやすさの観点で、どちらが良いと思いますか？
+                    </label>
+                    <div class="space-y-2">
+                        <label class="flex items-center">
+                            <input type="radio" name="usability" value="A" class="mr-3">
+                            <span>条件A: 手のジェスチャーと口の開閉による入力</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="usability" value="B" class="mr-3">
+                            <span>条件B: 手のみのジェスチャー</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="usability" value="どちらでもない" class="mr-3">
+                            <span>どちらでもない</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 学習しやすさ -->
+                <div class="mb-6">
+                    <label class="block text-lg font-semibold mb-3">
+                        学習しやすさの観点で、どちらが良いと思いますか？
+                    </label>
+                    <div class="space-y-2">
+                        <label class="flex items-center">
+                            <input type="radio" name="learnability" value="A" class="mr-3">
+                            <span>条件A: 手のジェスチャーと口の開閉による入力</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="learnability" value="B" class="mr-3">
+                            <span>条件B: 手のみのジェスチャー</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="learnability" value="どちらでもない" class="mr-3">
+                            <span>どちらでもない</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 実用性 -->
+                <div class="mb-6">
+                    <label class="block text-lg font-semibold mb-3">
+                        実用性（日常で使いたいか）の観点で、どちらが良いと思いますか？
+                    </label>
+                    <div class="space-y-2">
+                        <label class="flex items-center">
+                            <input type="radio" name="practicality" value="A" class="mr-3">
+                            <span>条件A: 手のジェスチャーと口の開閉による入力</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="practicality" value="B" class="mr-3">
+                            <span>条件B: 手のみのジェスチャー</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="practicality" value="どちらでもない" class="mr-3">
+                            <span>どちらでもない</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 自由記述 -->
+            <div class="bg-gray-700 rounded-lg p-6">
+                <h2 class="text-xl font-semibold mb-4">
+                    ご感想・ご意見
+                </h2>
+                
+                <div class="mb-6">
+                    <label class="block text-lg font-semibold mb-3">
+                        実験全体を通してのご感想やご意見をお聞かせください（任意）
+                    </label>
+                    <textarea 
+                        name="comments"
+                        rows="4"
+                        class="w-full bg-gray-600 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="実験の感想、改善点、その他お気づきの点など、自由にお書きください"
+                    ></textarea>
+                </div>
+            </div>
+
+            <div class="flex justify-between">
+                <button 
+                    type="button"
+                    onclick="goBack()"
+                    class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200"
+                >
+                    戻る
+                </button>
+                
+                <button 
+                    type="submit"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200"
+                >
+                    評価を完了する
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script type="module">
+        import { logger } from './logger.js';
+
+        document.getElementById('preferenceForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            // 必須項目チェック
+            if (!formData.get('preference')) {
+                alert('全体的な好みを選択してください');
+                return;
+            }
+            
+            // 好み評価データを準備
+            const preferenceData = {
+                preference: formData.get('preference'),
+                preferenceReason: formData.get('preferenceReason') || '',
+                usability: formData.get('usability') || '',
+                learnability: formData.get('learnability') || '',
+                practicality: formData.get('practicality') || '',
+                comments: formData.get('comments') || ''
+            };
+            
+            // 全データを統合してGASに送信
+            try {
+                // これまでのデータを取得
+                const userAttributes = JSON.parse(localStorage.getItem('user_attributes') || '{}');
+                const fatigueData = JSON.parse(localStorage.getItem('fatigue_data') || '{}');
+                
+                // 統合データを作成
+                const completeUserData = {
+                    ...userAttributes,
+                    ...fatigueData,
+                    preference: preferenceData.preference,
+                    comments: `理由: ${preferenceData.preferenceReason}\n使いやすさ: ${preferenceData.usability}\n学習しやすさ: ${preferenceData.learnability}\n実用性: ${preferenceData.practicality}\nコメント: ${preferenceData.comments}`
+                };
+                
+                // GASに送信
+                await logger.logUserInfo(completeUserData);
+                
+                // ローカルデータをクリア
+                localStorage.removeItem('user_attributes');
+                localStorage.removeItem('fatigue_data');
+                localStorage.removeItem('experiment_data');
+                
+                // 完了ページに遷移
+                window.location.href = 'thanks.html';
+                
+            } catch (error) {
+                console.error('Data submission failed:', error);
+                alert('データの送信に失敗しました。ネットワーク接続を確認してください。');
+            }
+        });
+
+        window.goBack = function() {
+            window.location.href = 'fatigue.html';
+        };
+    </script>
+</body>
+</html>

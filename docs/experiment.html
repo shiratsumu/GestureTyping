@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>実験セッション - ジェスチャータイピング実験</title>
+    <link rel="icon" href="images/Gesture-icon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="./p5.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <style>
+    :root {
+      --body-bg-color: #373737;
+      --body-text-color: #bdbdbd;
+      --muted-text-color: #d4d4d4;
+      --overlay-bg-color: rgba(55, 65, 81, 0.8);
+      --ui-element-bg-color: #848484;
+      --button-primary-bg-color: #6f7e97;
+      --button-primary-hover-bg-color: #666e7d;
+      --error-text-color: #f87171;
+      --char-display-bg-color: rgba(229, 231, 235, 0.9);
+      --game-info-bg-color: #707070;
+      --input-bg-color: #484848;
+      --input-text-color: #ffffff;
+      --error-message-bg-color: #fee2e2;
+      --error-message-border-color: #f87171;
+      --error-message-text-color: #b91c1c;
+    }
+    </style>
+</head>
+<body style="background-color: var(--body-bg-color); color: var(--body-text-color);">
+
+    <!-- メインカメラエリア（全画面） -->
+    <main id="canvas-container" class="absolute inset-0 w-full h-full">
+        <!-- p5.jsがここにCanvasを生成します -->
+    </main>
+
+    <!-- 上部ヘッダー：実験情報 -->
+    <header class="absolute top-0 left-0 right-0 z-20 p-4" style="background: linear-gradient(to bottom, rgba(55, 55, 55, 0.9), rgba(55, 55, 55, 0));">
+        <div class="flex items-center justify-between">
+            <button id="backBtn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg" onclick="goBack()">
+                ← 戻る
+            </button>
+            <div class="text-center">
+                <h1 class="text-lg font-bold" id="experimentTitle">実験セッション</h1>
+                <p class="text-sm" style="color: var(--muted-text-color);" id="experimentSubtitle">
+                    条件A（手のジェスチャー）- 試行 1/3
+                </p>
+            </div>
+            <div class="text-right">
+                <div class="text-sm" style="color: var(--muted-text-color);">進捗</div>
+                <div class="text-lg font-bold" id="progressText">1/6</div>
+            </div>
+        </div>
+        
+        <!-- プログレスバー -->
+        <div class="mt-2">
+            <div class="w-full bg-gray-600 rounded-full h-2">
+                <div id="progressBar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 16.67%"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 右上：文字入力状況表示UI -->
+    <div id="character-display" class="absolute top-24 right-4 z-10 rounded-lg p-4 w-40 sm:w-64 hidden" style="background-color: var(--char-display-bg-color);">
+        <div id="char-list" class="flex flex-col items-center space-y-3">
+            <!-- 文字がJavaScriptで動的に追加されます -->
+        </div>
+    </div>
+
+    <!-- ローディングとスタートボタン用のオーバーレイ -->
+    <div id="ui-overlay" class="absolute inset-0 z-10 flex flex-col justify-center items-center text-center p-4" style="background-color: var(--overlay-bg-color);">
+        <div id="loading-ui">
+            <p class="text-lg mb-2">MediaPipeモデルを読み込んでいます...</p>
+            <div class="loader"></div>
+        </div>
+        <div id="ready-ui" class="hidden">
+            <div class="bg-gray-700 rounded-lg p-6 mb-6 max-w-md">
+                <h2 class="text-xl font-semibold mb-4" id="trialDescription">試行の準備</h2>
+                <p class="text-gray-300 mb-4" id="trialInstructions">
+                    以下のフレーズをできるだけ正確かつ迅速に入力してください。
+                </p>
+                <div class="bg-gray-600 rounded-lg p-4 mb-4">
+                    <h3 class="text-lg font-semibold mb-2">入力フレーズ:</h3>
+                    <p class="text-xl font-mono text-yellow-300" id="targetPhrase">
+                        hello world
+                    </p>
+                </div>
+            </div>
+            <button id="startTrialBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg" onclick="startTrial()">
+                試行を開始する
+            </button>
+        </div>
+        <div id="error-ui" class="hidden" style="color: var(--error-text-color);">
+            <p>エラーが発生しました。</p>
+            <p id="error-message" class="text-sm"></p>
+        </div>
+    </div>
+
+    <!-- 下部：ゲーム用のUI要素 (実験中に表示) -->
+    <div id="game-ui" class="absolute bottom-0 left-0 right-0 z-10 p-4 hidden" style="background: linear-gradient(to top, rgba(55, 55, 55, 0.9), rgba(55, 55, 55, 0));">
+        <div class="max-w-4xl mx-auto">
+            <!-- タイマー表示 -->
+            <div class="text-center mb-4">
+                <span class="text-lg font-semibold">経過時間: </span>
+                <span id="timer" class="text-xl font-mono text-blue-300">00:00</span>
+            </div>
+            
+            <div class="rounded-md p-3 mb-3 text-center" style="background-color: var(--game-info-bg-color);">
+                <h5 class="font-semibold text-base">目標フレーズ:</h5>
+                <p id="message" class="text-xl font-mono tracking-wider break-words">hello world</p>
+            </div>
+            <div>
+                <div id="typing-input" class="w-full p-3 rounded-md text-xl font-mono tracking-wider text-center" style="background-color: var(--input-bg-color); color: var(--input-text-color); min-height: 50px; white-space: pre-wrap; word-break: break-all;"></div>
+            </div>
+            
+            <!-- エラーメッセージ表示エリア -->
+            <div id="error-message-display" class="mt-3 p-3 border rounded-md text-center hidden" style="background-color: var(--error-message-bg-color); border-color: var(--error-message-border-color); color: var(--error-message-text-color);">
+                <div class="font-bold text-base">入力エラー</div>
+                <div id="error-text" class="text-sm mt-1">間違った文字が入力されました。削除ジェスチャー (5,5) で削除してください。</div>
+            </div>
+            
+            <div class="flex justify-center mt-4">
+                <button id="skipTrialBtn" class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded" onclick="skipTrial()">
+                    この試行をスキップ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 試行完了モーダル -->
+    <div id="trialCompletionModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+            <h2 class="text-xl font-bold mb-4 text-center text-green-400">試行完了！</h2>
+            <p class="text-gray-300 mb-4 text-center" id="completionMessage">
+                お疲れ様でした。
+            </p>
+            <div class="text-center mb-6">
+                <div class="text-lg">完了時間: <span id="completionTime" class="font-mono text-blue-300">00:00</span></div>
+            </div>
+            <div class="flex justify-center">
+                <button id="nextTrialBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg" onclick="proceedToNext()">
+                    次へ進む
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- sketch.jsをインポート -->
+    <script type="module" src="sketch.js"></script>
+    
+    <script type="module">
+        import { logger } from './logger.js';
+
+        let currentCondition = '';
+        let currentTrial = 1;
+        let trialStartTime = 0;
+        let timerInterval = null;
+        let trialActive = false;
+        let currentPhrase = '';
+        
+        // 実験用フレーズプール（phrases2.txtから読み込み）
+        let experimentPhrases = [];
+
+        // ページ読み込み時の初期化
+        document.addEventListener('DOMContentLoaded', async function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            currentCondition = urlParams.get('cond') || 'A';
+            currentTrial = parseInt(urlParams.get('trial')) || 1;
+            
+            updateUI();
+            await loadExperimentPhrases();
+            await initializeMediaPipe();
+        });
+
+        async function loadExperimentPhrases() {
+            try {
+                // ▼▼▼【ここから修正】GitHub Pagesでも動作するようパスを修正 ▼▼▼
+                const response = await fetch('./PhraseSets/phrases2.txt');
+                // ▲▲▲【ここまで修正】▲▲▲
+                if (!response.ok) {
+                    throw new Error(`フレーズファイルの読み込みに失敗: ${response.status}`);
+                }
+                const text = await response.text();
+                experimentPhrases = text.split('\n')
+                    .map(line => line.trim())
+                    .filter(line => line.length > 0);
+                
+                console.log(`${experimentPhrases.length}個の実験用フレーズを読み込みました`);
+                console.log('最初の5個のフレーズ:', experimentPhrases.slice(0, 5)); // デバッグ用
+                
+                // ランダムなフレーズを選択
+                selectRandomPhrase();
+                
+            } catch (error) {
+                console.error('フレーズ読み込みエラー:', error);
+                // フォールバック
+                experimentPhrases = ['hello world', 'the quick brown fox', 'good morning'];
+                console.log('フォールバックフレーズを使用:', experimentPhrases);
+                selectRandomPhrase();
+            }
+        }
+
+        function selectRandomPhrase() {
+            if (experimentPhrases.length > 0) {
+                currentPhrase = experimentPhrases[Math.floor(Math.random() * experimentPhrases.length)];
+            } else {
+                currentPhrase = 'hello world';
+            }
+            
+            document.getElementById('targetPhrase').textContent = currentPhrase;
+            document.getElementById('message').textContent = currentPhrase;
+        }
+
+        function updateUI() {
+            const condOrder = JSON.parse(localStorage.getItem('condOrder') || '["A", "B"]');
+            const condIndex = condOrder.indexOf(currentCondition);
+            const total = 6; // 2条件 × 3試行
+            const current = (condIndex * 3) + currentTrial;
+            
+            document.getElementById('progressText').textContent = `${current}/${total}`;
+            document.getElementById('progressBar').style.width = `${(current / total) * 100}%`;
+            
+            const conditionName = currentCondition === 'A' ? '手のジェスチャー（リップクリック）' : 'お口のジェスチャー（時間経過）';
+            document.getElementById('experimentSubtitle').textContent = 
+                `条件${currentCondition}（${conditionName}）- 試行 ${currentTrial}/3`;
+        }
+
+        async function initializeMediaPipe() {
+            try {
+                console.log("Starting MediaPipe initialization...");
+                document.getElementById('loading-ui').innerHTML = '<p class="text-lg mb-2">MediaPipeモデルを読み込んでいます...</p><div class="loader"></div><p class="text-sm mt-2">Step 1: Checking functions...</p>';
+                
+                // MediaPipeの初期化を待つ
+                if (typeof initializeLandmarkers !== 'undefined') {
+                    console.log("initializeLandmarkers found, calling directly...");
+                    document.getElementById('loading-ui').innerHTML += '<p class="text-sm">Step 2: Calling initializeLandmarkers...</p>';
+                    await initializeLandmarkers();
+                } else {
+                    console.log("initializeLandmarkers not found, waiting for sketch.js...");
+                    document.getElementById('loading-ui').innerHTML += '<p class="text-sm">Step 2: Waiting for sketch.js...</p>';
+                    // sketch.jsの読み込み完了を待つ
+                    await new Promise((resolve, reject) => {
+                        const checkInterval = setInterval(() => {
+                            console.log("Checking for initializeLandmarkers...", typeof initializeLandmarkers);
+                            if (typeof initializeLandmarkers !== 'undefined') {
+                                clearInterval(checkInterval);
+                                resolve();
+                            }
+                        }, 100);
+                        
+                        // 10秒後にタイムアウト
+                        setTimeout(() => {
+                            clearInterval(checkInterval);
+                            reject(new Error('initializeLandmarkers function not found after 10 seconds'));
+                        }, 10000);
+                    });
+                    console.log("initializeLandmarkers found after waiting, calling...");
+                    document.getElementById('loading-ui').innerHTML += '<p class="text-sm">Step 3: Found initializeLandmarkers, calling...</p>';
+                    await initializeLandmarkers();
+                }
+                
+                console.log("MediaPipe initialization successful");
+                document.getElementById('loading-ui').innerHTML += '<p class="text-sm">Step 4: Success!</p>';
+                
+                // 成功した場合
+                document.getElementById('loading-ui').classList.add('hidden');
+                document.getElementById('ready-ui').classList.remove('hidden');
+                
+            } catch (err) {
+                console.error("MediaPipe initialization failed:", err);
+                // 失敗した場合
+                document.getElementById('loading-ui').classList.add('hidden');
+                document.getElementById('error-ui').classList.remove('hidden');
+                document.getElementById('error-message').textContent = err.message;
+            }
+        }
+
+        window.startTrial = async function() {
+            if (!trialActive) {
+                trialActive = true;
+                trialStartTime = Date.now();
+                
+                // 実験モードを設定（練習モードを無効にする）
+                if (typeof setPracticeMode !== 'undefined') {
+                    setPracticeMode(false);
+                }
+                
+                // カメラを起動
+                if (typeof startCamera !== 'undefined') {
+                    await startCamera();
+                }
+                
+                // 入力モードを設定
+                const mode = currentCondition === 'A' ? window.INPUT_MODE.LIP_CLICK : window.INPUT_MODE.TIME_HOLD;
+                if (typeof setInputMode !== 'undefined') {
+                    setInputMode(mode);
+                }
+                
+                // ゲームモードを実験モードに設定
+                if (window.game_mode) {
+                    window.game_mode.now = "playing";
+                }
+                
+                // ▼▼▼【ここから追加】実験用ゲーム開始ログを送信 ▼▼▼
+                // ゲーム開始ログを直接送信（カウントダウンをスキップするため）
+                const gameStartTime = Date.now();
+                const gameStartEvent = new CustomEvent('characterConfirmed', {
+                    detail: {
+                        character: 'GAME_STARTED',
+                        t_select: gameStartTime,
+                        t_confirm: gameStartTime,
+                        errorFlag: 0,
+                        latency: 0
+                    }
+                });
+                window.dispatchEvent(gameStartEvent);
+                console.log('Game start event dispatched at:', new Date(gameStartTime).toISOString());
+                // ▲▲▲【ここまで追加】▲▲▲
+                
+                // 目標フレーズを設定
+                if (typeof setTargetPhrase !== 'undefined') {
+                    setTargetPhrase(currentPhrase);
+                }
+                
+                // UIの切り替え
+                document.getElementById('ui-overlay').classList.add('hidden');
+                document.getElementById('game-ui').classList.remove('hidden');
+                
+                // タイマー開始
+                timerInterval = setInterval(updateTimer, 100);
+                
+                console.log(`Trial started: condition ${currentCondition}, trial ${currentTrial}, phrase: "${currentPhrase}"`);
+            }
+        };
+
+        function updateTimer() {
+            if (!trialActive) return;
+            
+            const elapsed = Date.now() - trialStartTime;
+            const seconds = Math.floor(elapsed / 1000);
+            const centiseconds = Math.floor((elapsed % 1000) / 10);
+            
+            document.getElementById('timer').textContent = 
+                `${seconds.toString().padStart(2, '0')}:${centiseconds.toString().padStart(2, '0')}`;
+        }
+
+        function stopTrial() {
+            trialActive = false;
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        window.skipTrial = function() {
+            if (!trialActive) return;
+            
+            const endTime = Date.now();
+            stopTrial();
+            
+            // スキップデータを記録
+            const logData = {
+                type: 'log',
+                userId: logger.getUserId(),
+                sessionId: logger.getSessionId(),
+                condition: currentCondition,
+                trial: currentTrial,
+                t_select: trialStartTime,
+                t_confirm: endTime,
+                character: 'TRIAL_SKIPPED',
+                errorFlag: 1,
+                latency: -1
+            };
+            
+            logger.writeLog(logData).catch(console.error);
+            
+            showTrialCompletion('スキップ', true);
+        };
+
+        function showTrialCompletion(completionTime, isSkipped = false) {
+            // カメラを停止
+            if (typeof stopCamera !== 'undefined') {
+                stopCamera();
+            }
+            
+            // 完了モーダルを表示
+            document.getElementById('completionTime').textContent = completionTime;
+            document.getElementById('completionMessage').textContent = 
+                isSkipped ? '試行がスキップされました。' : 'フレーズの入力が完了しました。';
+            
+            document.getElementById('trialCompletionModal').classList.remove('hidden');
+            document.getElementById('trialCompletionModal').classList.add('flex');
+        }
+
+        window.proceedToNext = function() {
+            currentTrial++;
+            
+            if (currentTrial > 3) {
+                // 現在の条件が完了
+                const completedConditions = JSON.parse(localStorage.getItem('completedConditions') || '[]');
+                completedConditions.push(currentCondition);
+                localStorage.setItem('completedConditions', JSON.stringify(completedConditions));
+                
+                // 疲労度評価に遷移
+                window.location.href = `fatigue.html?cond=${currentCondition}`;
+            } else {
+                // 同じ条件の次の試行に進む
+                window.location.href = `experiment.html?cond=${currentCondition}&trial=${currentTrial}`;
+            }
+        };
+
+        window.goBack = function() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+            if (typeof stopCamera !== 'undefined') {
+                stopCamera();
+            }
+            
+            const prevTrial = currentTrial - 1;
+            if (prevTrial >= 1) {
+                window.location.href = `experiment.html?cond=${currentCondition}&trial=${prevTrial}`;
+            } else {
+                window.location.href = `practice.html?cond=${currentCondition}`;
+            }
+        };
+
+        // sketch.jsからの文字確定イベントを受信（即座にログ送信）
+        window.addEventListener('characterConfirmed', (event) => {
+            const data = event.detail;
+            
+            // ▼▼▼【ここから修正】GAME_STARTEDは常に記録、他は試行中のみ記録 ▼▼▼
+            if (!trialActive && data.character !== 'GAME_STARTED') {
+                return; // 試行中でない場合は通常の文字入力のみスキップ
+            }
+            // ▲▲▲【ここまで修正】▲▲▲
+            
+            // ログを即座に送信
+            const logData = {
+                type: 'log',
+                userId: logger.getUserId(),
+                sessionId: logger.getSessionId(),
+                condition: currentCondition,
+                trial: currentTrial,
+                t_select: data.t_select,
+                t_confirm: data.t_confirm,
+                character: data.character,
+                errorFlag: data.errorFlag || 0,
+                latency: data.latency
+            };
+            
+            logger.writeLog(logData).catch(console.error);
+            console.log('Character confirmed and logged:', data.character, 
+                data.character === 'GAME_STARTED' ? `(Game start time: ${new Date(data.t_select).toISOString()})` : '',
+                `(Time: ${new Date(data.t_confirm).toISOString()})`); // タイムスタンプを追加
+        });
+
+        // sketch.jsからの文章完了イベントを受信
+        window.addEventListener('sentenceCompleted', (event) => {
+            if (!trialActive) return;
+            
+            const endTime = Date.now();
+            const elapsedSec = ((endTime - trialStartTime) / 1000).toFixed(2);
+            
+            // ▼▼▼【ここから修正】最後の文字ログが確実に送信されるよう少し遅延 ▼▼▼
+            console.log('Sentence completed, waiting for last character log...');
+            
+            // 最後の文字のログ送信を待ってから試行終了処理を実行
+            setTimeout(() => {
+                stopTrial();
+                
+                setTimeout(() => {
+                    showTrialCompletion(`${elapsedSec}s`);
+                }, 500);
+            }, 50); // 50ms遅延で最後の文字ログ送信を確実に待機
+            // ▲▲▲【ここまで修正】▲▲▲
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediaPipe Debug Test</title>
+</head>
+<body>
+    <h1>MediaPipe Debug Test</h1>
+    <div id="status">初期化中...</div>
+    <div id="error" style="color: red; display: none;"></div>
+    
+    <script type="module">
+        console.log("Script started");
+        
+        // Step 1: p5.js読み込み確認
+        if (typeof p5 !== 'undefined') {
+            console.log("✓ p5.js loaded");
+            document.getElementById('status').innerHTML += "<br>✓ p5.js loaded";
+        } else {
+            console.log("✗ p5.js not loaded");
+            document.getElementById('status').innerHTML += "<br>✗ p5.js not loaded";
+        }
+        
+        // Step 2: MediaPipeライブラリの読み込み確認
+        try {
+            console.log("Attempting to import MediaPipe...");
+            const { FaceLandmarker, GestureRecognizer, FilesetResolver } = await import('./mediapipe_libs/vision_bundle.js');
+            console.log("✓ MediaPipe imports successful");
+            document.getElementById('status').innerHTML += "<br>✓ MediaPipe imports successful";
+            
+            // Step 3: FilesetResolver初期化確認
+            console.log("Attempting FilesetResolver...");
+            const filesetResolver = await FilesetResolver.forVisionTasks("./mediapipe_libs/wasm");
+            console.log("✓ FilesetResolver initialized");
+            document.getElementById('status').innerHTML += "<br>✓ FilesetResolver initialized";
+            
+            // Step 4: FaceLandmarker初期化確認
+            console.log("Attempting FaceLandmarker...");
+            const faceLandmarker = await FaceLandmarker.createFromOptions(filesetResolver, {
+                baseOptions: {
+                    modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task`,
+                    delegate: "GPU"
+                },
+                minFaceDetectionConfidence: 0.5,
+                minTrackingConfidence: 0.5,
+                runningMode: "VIDEO",
+                numFaces: 1
+            });
+            console.log("✓ FaceLandmarker initialized");
+            document.getElementById('status').innerHTML += "<br>✓ FaceLandmarker initialized";
+            
+            // Step 5: GestureRecognizer初期化確認
+            console.log("Attempting GestureRecognizer...");
+            const gestureRecognizer = await GestureRecognizer.createFromOptions(filesetResolver, {
+                baseOptions: {
+                    modelAssetPath: `./models/gesture_recognizer.task`,
+                    delegate: "GPU"
+                },
+                runningMode: "VIDEO",
+                numHands: 2,
+                minHandDetectionConfidence: 0.5,
+                minTrackingConfidence: 0.5
+            });
+            console.log("✓ GestureRecognizer initialized");
+            document.getElementById('status').innerHTML += "<br>✓ GestureRecognizer initialized";
+            
+            console.log("✓ All MediaPipe components initialized successfully!");
+            document.getElementById('status').innerHTML += "<br><strong>✓ すべてのMediaPipeコンポーネントが正常に初期化されました！</strong>";
+            
+        } catch (error) {
+            console.error("MediaPipe initialization error:", error);
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('error').textContent = `エラー: ${error.message}`;
+            document.getElementById('status').innerHTML += `<br>✗ エラー: ${error.message}`;
+        }
+        
+        // Step 6: sketch.jsの読み込み確認
+        try {
+            console.log("Attempting to import sketch.js...");
+            await import('./sketch.js');
+            console.log("✓ sketch.js imported");
+            document.getElementById('status').innerHTML += "<br>✓ sketch.js imported";
+            
+            // initializeLandmarkers関数の存在確認
+            if (typeof window.initializeLandmarkers !== 'undefined') {
+                console.log("✓ initializeLandmarkers function available");
+                document.getElementById('status').innerHTML += "<br>✓ initializeLandmarkers function available";
+                
+                // 実際にinitializeLandmarkersを呼び出してテスト
+                try {
+                    console.log("Testing initializeLandmarkers...");
+                    await window.initializeLandmarkers();
+                    console.log("✓ initializeLandmarkers executed successfully");
+                    document.getElementById('status').innerHTML += "<br>✓ initializeLandmarkers executed successfully";
+                } catch (error) {
+                    console.error("initializeLandmarkers execution error:", error);
+                    document.getElementById('error').innerHTML += `<br>initializeLandmarkers実行エラー: ${error.message}`;
+                }
+                
+            } else {
+                console.log("✗ initializeLandmarkers function not available");
+                document.getElementById('status').innerHTML += "<br>✗ initializeLandmarkers function not available";
+            }
+            
+            // startCamera/stopCamera関数の確認
+            if (typeof window.startCamera !== 'undefined') {
+                console.log("✓ startCamera function available");
+                document.getElementById('status').innerHTML += "<br>✓ startCamera function available";
+            } else {
+                console.log("✗ startCamera function not available");
+                document.getElementById('status').innerHTML += "<br>✗ startCamera function not available";
+            }
+            
+            if (typeof window.stopCamera !== 'undefined') {
+                console.log("✓ stopCamera function available");
+                document.getElementById('status').innerHTML += "<br>✓ stopCamera function available";
+            } else {
+                console.log("✗ stopCamera function not available");
+                document.getElementById('status').innerHTML += "<br>✗ stopCamera function not available";
+            }
+        } catch (error) {
+            console.error("sketch.js import error:", error);
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('error').innerHTML += `<br>sketch.js エラー: ${error.message}`;
+        }
+    </script>
+    
+    <!-- p5.jsを読み込み -->
+    <script src="./p5.js"></script>
+</body>
+</html>

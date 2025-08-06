@@ -44,9 +44,9 @@
         <!-- ヘッダー部分 -->
         <header class="absolute top-0 left-0 right-0 z-10 p-4">
             <div class="text-center">
-                <h1 class="text-2xl sm:text-4xl font-bold">口 Gesture Typing</h1>
+                <h1 class="text-2xl sm:text-4xl font-bold">Gesture Typing For Paper</h1>
                 <p class="text-xs sm:text-sm mt-2" style="color: var(--muted-text-color);">
-                    Using MediaPipe and p5.js with a custom model
+                    ここは研究用のブランチです。
                 </p>
             </div>
         </header>
@@ -177,6 +177,7 @@
 
     <script type="module">
       import { loadRanking } from './script.js';
+      let trialStartTime = 0;
       function updateRanking() {
         const title = document.getElementById('leaderboard-title');
         const record = document.getElementById('record');
@@ -243,10 +244,93 @@ document.addEventListener('DOMContentLoaded', function() {
   const welcomePage = document.getElementById('welcome-page');
   const gamePage = document.getElementById('game-page');
   
-  // 初期状態：ウェルカムページを表示、ゲームページを非表示
-  welcomePage.classList.remove('hidden');
-  gamePage.classList.add('hidden');
+  // URLパラメータを確認
+  const urlParams = new URLSearchParams(window.location.search);
+  const mode = urlParams.get('mode'); // 'lip-click' or 'time-hold'
+  const isPractice = urlParams.get('practice') === 'true';
+  const isExperiment = urlParams.get('experiment') === 'true';
+  const condition = urlParams.get('cond'); // 'A' or 'B'
+  const trial = urlParams.get('trial'); // 1, 2, 3
+
+  // 実験モードかどうかを判定
+  if (isPractice || isExperiment) {
+    // 実験モード：直接ゲームページを表示
+    welcomePage.classList.add('hidden');
+    gamePage.classList.remove('hidden');
+    
+    // モードを設定（sketch.jsが読み込まれるまで待機）
+    const waitForSketch = setInterval(() => {
+      if (window.setInputMode && window.INPUT_MODE) {
+        // 実験モードの場合は練習モードを無効にする
+        if (window.setPracticeMode) {
+          window.setPracticeMode(false);
+        }
+        
+        if (mode === 'lip-click') {
+          window.setInputMode(window.INPUT_MODE.LIP_CLICK);
+        } else if (mode === 'time-hold') {
+          window.setInputMode(window.INPUT_MODE.TIME_HOLD);
+        }
+        
+        console.log(`Experiment mode set: ${mode}, condition: ${condition}, trial: ${trial}`);
+        clearInterval(waitForSketch);
+        
+        // 文字確定イベントの監視を開始
+        if (isExperiment) {
+          setupExperimentLogging();
+        }
+      }
+    }, 100);
+  } else {
+    // 通常のデモモード：ウェルカムページを表示
+    // デモモードでも練習モードを無効にする
+    const waitForDemoSketch = setInterval(() => {
+      if (window.setPracticeMode) {
+        window.setPracticeMode(false);
+        clearInterval(waitForDemoSketch);
+      }
+    }, 100);
+    welcomePage.classList.remove('hidden');
+    gamePage.classList.add('hidden');
+  }
 });
+
+// 実験用ログ設定
+function setupExperimentLogging() {
+  // sketch.jsからの文字確定イベントを受信
+  window.addEventListener('characterConfirmed', (event) => {
+    const data = event.detail;
+    
+    // 親ウィンドウ（実験ページ）にメッセージを送信
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({
+        type: 'characterConfirmed',
+        data: data
+      }, '*');
+    }
+  });
+  
+  // 文章完了イベントを受信
+  window.addEventListener('sentenceCompleted', (event) => {
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({
+        type: 'sentenceCompleted'
+      }, '*');
+    }
+  });
+  
+  // 親ウィンドウからのメッセージを受信
+  window.addEventListener('message', (event) => {
+    if (event.data.type === 'startTrial') {
+      // 新しい試行開始
+      const targetPhrase = event.data.targetPhrase;
+      // sketch.jsに目標フレーズを設定
+      if (window.setTargetPhrase) {
+        window.setTargetPhrase(targetPhrase);
+      }
+    }
+  });
+}
 </script>
 </body>
 </html>

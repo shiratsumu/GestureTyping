@@ -1,0 +1,141 @@
+{
+  "name": "",
+  "type": "directory",
+  "children": [
+    {
+      "name": "images",
+      "type": "directory",
+      "children": [
+        {
+          "name": "Gesture-icon-180.png",
+          "type": "file",
+          "size": 11495
+        },
+        {
+          "name": "Gesture-icon-192.png",
+          "type": "file",
+          "size": 12295
+        },
+        {
+          "name": "Gesture-icon.png",
+          "type": "file",
+          "size": 2851
+        },
+        {
+          "name": "tutorial.png",
+          "type": "file",
+          "size": 184419
+        }
+      ]
+    },
+    {
+      "name": "mediapipe_libs",
+      "type": "directory",
+      "children": [
+        {
+          "name": "wasm",
+          "type": "directory",
+          "children": [
+            {
+              "name": "vision_wasm_internal.js",
+              "type": "file",
+              "size": 204284
+            },
+            {
+              "name": "vision_wasm_internal.wasm",
+              "type": "file",
+              "size": 9574032
+            }
+          ]
+        },
+        {
+          "name": "vision_bundle.js",
+          "type": "file",
+          "size": 880936
+        }
+      ]
+    },
+    {
+      "name": "models",
+      "type": "directory",
+      "children": [
+        {
+          "name": "gesture_recognizer.task",
+          "type": "file",
+          "size": 8462399
+        }
+      ]
+    },
+    {
+      "name": "PhraseSets",
+      "type": "directory",
+      "children": [
+        {
+          "name": "phrases2.txt",
+          "type": "file",
+          "size": 15313
+        }
+      ]
+    },
+    {
+      "name": "directory_to_json.py",
+      "type": "file",
+      "size": 2950
+    },
+    {
+      "name": "fork.png",
+      "type": "file",
+      "size": 135492
+    },
+    {
+      "name": "GitHub Pageの公開方法.mp4",
+      "type": "file",
+      "size": 749906
+    },
+    {
+      "name": "index.html",
+      "type": "file",
+      "size": 15235
+    },
+    {
+      "name": "mediapipe_manager.js",
+      "type": "file",
+      "size": 3586
+    },
+    {
+      "name": "output.json",
+      "type": "file",
+      "size": 56
+    },
+    {
+      "name": "p5.js",
+      "type": "file",
+      "size": 5112832
+    },
+    {
+      "name": "README.md",
+      "type": "file",
+      "size": 3511
+    },
+    {
+      "name": "script.js",
+      "type": "file",
+      "size": 3364
+    },
+    {
+      "name": "sketch.js",
+      "type": "file",
+      "size": 58125
+    },
+    {
+      "name": "sketch_backup.js",
+      "type": "file",
+      "size": 48701
+    },
+    {
+      "name": "style.css",
+      "type": "file",
+      "size": 3286
+    }
+  ]
+}

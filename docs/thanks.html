@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>実験完了</title>
+    <link rel="icon" href="images/Gesture-icon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-800 text-white min-h-screen flex flex-col items-center justify-center p-4">
+    <div class="max-w-2xl mx-auto text-center">
+        <div class="mb-8">
+            <div class="text-6xl mb-4">🎉</div>
+            <h1 class="text-4xl font-bold mb-4 text-green-400">実験完了</h1>
+            <p class="text-xl text-gray-300 leading-relaxed">
+                お疲れ様でした！<br>
+                実験にご参加いただき、ありがとうございました。
+            </p>
+        </div>
+
+        <div class="bg-gray-700 rounded-lg p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">ご協力への感謝</h2>
+            <p class="text-gray-300 leading-relaxed">
+                あなたにご提供いただいたデータは、新しい文字入力手法の研究開発に活用させていただきます。
+                ジェスチャーベースのインターフェースの向上に貢献していただき、心より感謝申し上げます。
+            </p>
+        </div>
+
+        <div class="bg-blue-900 rounded-lg p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">研究について</h2>
+            <div class="text-left text-gray-300 space-y-2">
+                <p>• この研究は、アクセシビリティ向上を目的としています</p>
+                <p>• データは匿名化され、研究目的のみに使用されます</p>
+                <p>• 研究結果は学術論文として公開される予定です</p>
+                <p>• ご質問がある場合は、研究者までお問い合わせください</p>
+            </div>
+        </div>
+
+        <div class="space-y-4">
+            <button 
+                onclick="viewData()"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 mr-4"
+            >
+                送信データを確認
+            </button>
+            
+            <button 
+                onclick="restartExperiment()"
+                class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 mr-4"
+            >
+                最初からやり直す
+            </button>
+            
+            <button 
+                onclick="viewDemo()"
+                class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200"
+            >
+                デモを見る
+            </button>
+        </div>
+
+        <div class="mt-8 text-sm text-gray-400">
+            <p>実験ID: <span id="sessionId" class="font-mono"></span></p>
+            <p>実験完了時刻: <span id="completionTime"></span></p>
+        </div>
+    </div>
+
+    <!-- データ確認モーダル -->
+    <div id="dataModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4">
+        <div class="bg-gray-800 rounded-lg max-w-2xl w-full max-h-96 overflow-auto p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold">送信データ</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-white">✕</button>
+            </div>
+            <div id="dataContent" class="text-sm font-mono text-gray-300 whitespace-pre-wrap"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { logger } from './logger.js';
+
+        // ページ読み込み時の初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            // セッションIDと完了時刻を表示
+            document.getElementById('sessionId').textContent = logger.getSessionId();
+            document.getElementById('completionTime').textContent = new Date().toLocaleString('ja-JP');
+        });
+
+        window.viewData = function() {
+            // 送信されたデータの概要を表示
+            const summary = {
+                userId: logger.getUserId(),
+                sessionId: logger.getSessionId(),
+                completionTime: new Date().toISOString(),
+                dataTypes: ['user_attributes', 'experiment_logs', 'fatigue_evaluation', 'preference_evaluation']
+            };
+            
+            document.getElementById('dataContent').textContent = JSON.stringify(summary, null, 2);
+            document.getElementById('dataModal').classList.remove('hidden');
+            document.getElementById('dataModal').classList.add('flex');
+        };
+
+        window.closeModal = function() {
+            document.getElementById('dataModal').classList.add('hidden');
+            document.getElementById('dataModal').classList.remove('flex');
+        };
+
+        window.restartExperiment = function() {
+            if (confirm('実験を最初からやり直しますか？')) {
+                // ローカルストレージをクリア
+                localStorage.clear();
+                // 最初のページに戻る
+                window.location.href = 'index.html';
+            }
+        };
+
+        window.viewDemo = function() {
+            // デモページに遷移
+            window.location.href = 'demo.html';
+        };
+
+        // モーダル外クリックで閉じる
+        document.getElementById('dataModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

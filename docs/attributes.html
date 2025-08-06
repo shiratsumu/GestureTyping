@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>基本情報入力</title>
+    <link rel="icon" href="images/Gesture-icon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-800 text-white min-h-screen p-4">
+    <div class="max-w-2xl mx-auto">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold">基本情報</h1>
+            <p class="text-gray-300 mt-2">実験前に基本的な情報を教えてください</p>
+        </div>
+
+        <form id="attributesForm" class="space-y-6">
+            <!-- 年齢 -->
+            <div class="bg-gray-700 rounded-lg p-6">
+                <label class="block text-lg font-semibold mb-3">年齢</label>
+                <input 
+                    type="number" 
+                    id="age" 
+                    name="age"
+                    min="18" 
+                    max="100"
+                    required
+                    class="w-full bg-gray-600 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="例: 25"
+                >
+            </div>
+
+            <!-- 性別 -->
+            <div class="bg-gray-700 rounded-lg p-6">
+                <label class="block text-lg font-semibold mb-3">性別</label>
+                <div class="space-y-2">
+                    <label class="flex items-center">
+                        <input type="radio" name="gender" value="男性" class="mr-3">
+                        <span>男性</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="radio" name="gender" value="女性" class="mr-3">
+                        <span>女性</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="radio" name="gender" value="その他" class="mr-3">
+                        <span>その他</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="radio" name="gender" value="回答しない" class="mr-3">
+                        <span>回答しない</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 経験 -->
+            <div class="bg-gray-700 rounded-lg p-6">
+                <label class="block text-lg font-semibold mb-3">
+                    以下の経験があれば選択してください（複数選択可）
+                </label>
+                <div class="space-y-2">
+                    <label class="flex items-center">
+                        <input type="checkbox" name="experience" value="楽器" class="mr-3">
+                        <span>楽器の演奏経験（1年以上）</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="checkbox" name="experience" value="書道" class="mr-3">
+                        <span>書道の経験（1年以上）</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="checkbox" name="experience" value="手話" class="mr-3">
+                        <span>手話の経験</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="checkbox" name="experience" value="なし" class="mr-3" id="noExperience">
+                        <span>該当なし</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="flex justify-between">
+                <button 
+                    type="button"
+                    onclick="goBack()"
+                    class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200"
+                >
+                    戻る
+                </button>
+                
+                <button 
+                    type="submit"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200"
+                >
+                    次へ進む
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script type="module">
+        import { logger } from './logger.js';
+
+        // 「該当なし」チェック時の排他制御
+        const noExperience = document.getElementById('noExperience');
+        const experienceCheckboxes = document.querySelectorAll('input[name="experience"]:not(#noExperience)');
+
+        noExperience.addEventListener('change', function() {
+            if (this.checked) {
+                experienceCheckboxes.forEach(cb => cb.checked = false);
+            }
+        });
+
+        experienceCheckboxes.forEach(cb => {
+            cb.addEventListener('change', function() {
+                if (this.checked) {
+                    noExperience.checked = false;
+                }
+            });
+        });
+
+        // フォーム送信処理
+        document.getElementById('attributesForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const age = formData.get('age');
+            const gender = formData.get('gender');
+            
+            // 経験の複数選択を配列として取得
+            const experienceValues = [];
+            formData.getAll('experience').forEach(val => {
+                experienceValues.push(val);
+            });
+            const experience = experienceValues.join(';') || 'なし';
+
+            // 入力チェック
+            if (!age || !gender) {
+                alert('必須項目を入力してください');
+                return;
+            }
+
+            // データを保存（後でまとめて送信）
+            const userData = {
+                age: parseInt(age),
+                gender: gender,
+                experience: experience
+            };
+            
+            localStorage.setItem('user_attributes', JSON.stringify(userData));
+            
+            // 最初の条件を取得
+            const condOrder = JSON.parse(localStorage.getItem('condOrder') || '["A", "B"]');
+            const firstCondition = condOrder[0];
+            
+            // 練習ページに遷移（最初の条件）
+            window.location.href = `practice.html?cond=${firstCondition}`;
+        });
+
+        window.goBack = function() {
+            window.location.href = 'consent.html';
+        };
+    </script>
+</body>
+</html>

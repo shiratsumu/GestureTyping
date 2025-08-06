@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>疲労度評価</title>
+    <link rel="icon" href="images/Gesture-icon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-800 text-white min-h-screen p-4">
+    <div class="max-w-3xl mx-auto">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold">疲労度評価</h1>
+            <p class="text-gray-300 mt-2">
+                それぞれの入力方法について、疲労度を評価してください
+            </p>
+        </div>
+
+        <form id="fatigueForm" class="space-y-8">
+            <!-- 手のジェスチャーの疲労度 -->
+            <div class="bg-gray-700 rounded-lg p-6">
+                <h2 class="text-xl font-semibold mb-4 text-blue-300">
+                    条件A: 手のジェスチャーでの入力
+                </h2>
+                
+                <div class="mb-6">
+                    <label class="block text-lg font-semibold mb-3">
+                        手の疲労度はどの程度でしたか？
+                    </label>
+                    <div class="grid grid-cols-5 gap-4">
+                        <label class="text-center">
+                            <input type="radio" name="handFatigue_A" value="1" class="mb-2 scale-125">
+                            <div class="text-sm">
+                                <div class="font-semibold">1</div>
+                                <div class="text-gray-300">全く疲れない</div>
+                            </div>
+                        </label>
+                        <label class="text-center">
+                            <input type="radio" name="handFatigue_A" value="2" class="mb-2 scale-125">
+                            <div class="text-sm">
+                                <div class="font-semibold">2</div>
+                                <div class="text-gray-300">少し疲れる</div>
+                            </div>
+                        </label>
+                        <label class="text-center">
+                            <input type="radio" name="handFatigue_A" value="3" class="mb-2 scale-125">
+                            <div class="text-sm">
+                                <div class="font-semibold">3</div>
+                                <div class="text-gray-300">どちらでもない</div>
+                            </div>
+                        </label>
+                        <label class="text-center">
+                            <input type="radio" name="handFatigue_A" value="4" class="mb-2 scale-125">
+                            <div class="text-sm">
+                                <div class="font-semibold">4</div>
+                                <div class="text-gray-300">疲れる</div>
+                            </div>
+                        </label>
+                        <label class="text-center">
+                            <input type="radio" name="handFatigue_A" value="5" class="mb-2 scale-125">
+                            <div class="text-sm">
+                                <div class="font-semibold">5</div>
+                                <div class="text-gray-300">とても疲れる</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 手のみのジェスチャーの疲労度 -->
+            <div class="bg-gray-700 rounded-lg p-6">
+                <h2 class="text-xl font-semibold mb-4 text-green-300">
+                    条件B: 手のみのジェスチャーでの入力
+                </h2>
+                
+                <div class="mb-6">
+                    <label class="block text-lg font-semibold mb-3">
+                        お口の疲労度はどの程度でしたか？
+                    </label>
+                    <div class="grid grid-cols-5 gap-4">
+                        <label class="text-center">
+                            <input type="radio" name="mouthFatigue_B" value="1" class="mb-2 scale-125">
+                            <div class="text-sm">
+                                <div class="font-semibold">1</div>
+                                <div class="text-gray-300">全く疲れない</div>
+                            </div>
+                        </label>
+                        <label class="text-center">
+                            <input type="radio" name="mouthFatigue_B" value="2" class="mb-2 scale-125">
+                            <div class="text-sm">
+                                <div class="font-semibold">2</div>
+                                <div class="text-gray-300">少し疲れる</div>
+                            </div>
+                        </label>
+                        <label class="text-center">
+                            <input type="radio" name="mouthFatigue_B" value="3" class="mb-2 scale-125">
+                            <div class="text-sm">
+                                <div class="font-semibold">3</div>
+                                <div class="text-gray-300">どちらでもない</div>
+                            </div>
+                        </label>
+                        <label class="text-center">
+                            <input type="radio" name="mouthFatigue_B" value="4" class="mb-2 scale-125">
+                            <div class="text-sm">
+                                <div class="font-semibold">4</div>
+                                <div class="text-gray-300">疲れる</div>
+                            </div>
+                        </label>
+                        <label class="text-center">
+                            <input type="radio" name="mouthFatigue_B" value="5" class="mb-2 scale-125">
+                            <div class="text-sm">
+                                <div class="font-semibold">5</div>
+                                <div class="text-gray-300">とても疲れる</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 追加の疲労度評価 -->
+            <div class="bg-gray-700 rounded-lg p-6">
+                <h2 class="text-xl font-semibold mb-4">
+                    クロス評価
+                </h2>
+                
+                <div class="mb-6">
+                    <label class="block text-lg font-semibold mb-3">
+                        手のジェスチャーと口の開閉による入力のお口の疲労度
+                    </label>
+                    <div class="grid grid-cols-5 gap-4">
+                        <label class="text-center">
+                            <input type="radio" name="mouthFatigue_A" value="1" class="mb-2 scale-125">
+                            <div class="text-sm">
+                                <div class="font-semibold">1</div>
+                                <div class="text-gray-300">全く疲れない</div>
+                            </div>
+                        </label>
+                        <label class="text-center">
+                            <input type="radio" name="mouthFatigue_A" value="2" class="mb-2 scale-125">
+                            <div class="text-sm">
+                                <div class="font-semibold">2</div>
+                                <div class="text-gray-300">少し疲れる</div>
+                            </div>
+                        </label>
+                        <label class="text-center">
+                            <input type="radio" name="mouthFatigue_A" value="3" class="mb-2 scale-125">
+                            <div class="text-sm">
+                                <div class="font-semibold">3</div>
+                                <div class="text-gray-300">どちらでもない</div>
+                            </div>
+                        </label>
+                        <label class="text-center">
+                            <input type="radio" name="mouthFatigue_A" value="4" class="mb-2 scale-125">
+                            <div class="text-sm">
+                                <div class="font-semibold">4</div>
+                                <div class="text-gray-300">疲れる</div>
+                            </div>
+                        </label>
+                        <label class="text-center">
+                            <input type="radio" name="mouthFatigue_A" value="5" class="mb-2 scale-125">
+                            <div class="text-sm">
+                                <div class="font-semibold">5</div>
+                                <div class="text-gray-300">とても疲れる</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-lg font-semibold mb-3">
+                        手のみのジェスチャー使用時の手の疲労度
+                    </label>
+                    <div class="grid grid-cols-5 gap-4">
+                        <label class="text-center">
+                            <input type="radio" name="handFatigue_B" value="1" class="mb-2 scale-125">
+                            <div class="text-sm">
+                                <div class="font-semibold">1</div>
+                                <div class="text-gray-300">全く疲れない</div>
+                            </div>
+                        </label>
+                        <label class="text-center">
+                            <input type="radio" name="handFatigue_B" value="2" class="mb-2 scale-125">
+                            <div class="text-sm">
+                                <div class="font-semibold">2</div>
+                                <div class="text-gray-300">少し疲れる</div>
+                            </div>
+                        </label>
+                        <label class="text-center">
+                            <input type="radio" name="handFatigue_B" value="3" class="mb-2 scale-125">
+                            <div class="text-sm">
+                                <div class="font-semibold">3</div>
+                                <div class="text-gray-300">どちらでもない</div>
+                            </div>
+                        </label>
+                        <label class="text-center">
+                            <input type="radio" name="handFatigue_B" value="4" class="mb-2 scale-125">
+                            <div class="text-sm">
+                                <div class="font-semibold">4</div>
+                                <div class="text-gray-300">疲れる</div>
+                            </div>
+                        </label>
+                        <label class="text-center">
+                            <input type="radio" name="handFatigue_B" value="5" class="mb-2 scale-125">
+                            <div class="text-sm">
+                                <div class="font-semibold">5</div>
+                                <div class="text-gray-300">とても疲れる</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-between">
+                <button 
+                    type="button"
+                    onclick="goBack()"
+                    class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200"
+                >
+                    戻る
+                </button>
+                
+                <button 
+                    type="submit"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200"
+                >
+                    次へ進む
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script type="module">
+        import { logger } from './logger.js';
+
+        let currentCondition = '';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // URLパラメータから現在の条件を取得
+            const urlParams = new URLSearchParams(window.location.search);
+            currentCondition = urlParams.get('cond') || 'A';
+            
+            // 条件に応じてタイトルを更新
+            updateTitles();
+        });
+
+        function updateTitles() {
+            const conditionName = currentCondition === 'A' ? '手のジェスチャーと口の開閉による入力' : '手のジェスチャーのみで時間経過による入力';
+            document.querySelector('h1').textContent = `疲労度評価 - 条件${currentCondition}`;
+            document.querySelector('.text-gray-300').textContent = 
+                `${conditionName}について、疲労度を評価してください`;
+        }
+
+        document.getElementById('fatigueForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            // 必須項目チェック
+            const requiredFields = ['handFatigue_A', 'mouthFatigue_A', 'handFatigue_B', 'mouthFatigue_B'];
+            for (const field of requiredFields) {
+                if (!formData.get(field)) {
+                    alert('すべての項目を評価してください');
+                    return;
+                }
+            }
+            
+            // 疲労度データを保存
+            const fatigueData = {
+                [`handFatigue_${currentCondition}`]: parseInt(formData.get('handFatigue_A')),
+                [`mouthFatigue_${currentCondition}`]: parseInt(formData.get('mouthFatigue_A')),
+                [`handFatigue_${currentCondition === 'A' ? 'B' : 'A'}`]: parseInt(formData.get('handFatigue_B')),
+                [`mouthFatigue_${currentCondition === 'A' ? 'B' : 'A'}`]: parseInt(formData.get('mouthFatigue_B'))
+            };
+            
+            // 既存の疲労度データとマージ
+            const existingFatigue = JSON.parse(localStorage.getItem('fatigue_data') || '{}');
+            const combinedFatigue = { ...existingFatigue, ...fatigueData };
+            localStorage.setItem('fatigue_data', JSON.stringify(combinedFatigue));
+            
+            // 完了した条件を確認
+            const completedConditions = JSON.parse(localStorage.getItem('completedConditions') || '[]');
+            const condOrder = JSON.parse(localStorage.getItem('condOrder') || '["A", "B"]');
+            
+            if (completedConditions.length === 1) {
+                // まだ1つの条件しか完了していない - 次の条件の練習に進む
+                const nextCondition = condOrder.find(cond => !completedConditions.includes(cond));
+                window.location.href = `practice.html?cond=${nextCondition}`;
+            } else {
+                // 両方の条件が完了 - 好み評価に進む
+                window.location.href = 'preference.html';
+            }
+        });
+
+        window.goBack = function() {
+            window.location.href = `experiment.html?cond=${currentCondition}&trial=3`;
+        };
+    </script>
+</body>
+</html>

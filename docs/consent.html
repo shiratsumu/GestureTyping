@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>実験参加同意書</title>
+    <link rel="icon" href="images/Gesture-icon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-800 text-white min-h-screen p-4">
+    <div class="max-w-4xl mx-auto">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold">実験参加同意書</h1>
+            <p class="text-gray-300 mt-2">以下の内容をよくお読みください</p>
+        </div>
+
+        <div class="bg-gray-700 rounded-lg p-6 mb-6 max-h-96 overflow-y-auto">
+            <div class="space-y-4 text-sm leading-relaxed">
+                <h2 class="text-xl font-semibold">研究の目的</h2>
+                <p>本研究は、手のジェスチャーと口の開閉を用いた新しい文字入力手法の有効性を評価することを目的としています。</p>
+
+                <h2 class="text-xl font-semibold">実験の内容</h2>
+                <p>実験では、2つの異なる入力方法（手のジェスチャーと口の開閉）を使用して文字入力を行っていただきます。各方法で3回ずつ試行し、入力時間や正確性を測定します。</p>
+
+                <h2 class="text-xl font-semibold">データの取り扱い</h2>
+                <ul class="list-disc pl-6 space-y-1">
+                    <li>収集されるデータは、入力時間、正確性、疲労度評価、主観評価です</li>
+                    <li>個人を特定できる情報は収集いたしません</li>
+                    <li>データは研究目的のみに使用され、適切に管理されます</li>
+                    <li>研究結果は学術論文や学会発表で使用される可能性があります</li>
+                </ul>
+
+                <h2 class="text-xl font-semibold">参加の任意性</h2>
+                <ul class="list-disc pl-6 space-y-1">
+                    <li>実験への参加は完全に任意です</li>
+                    <li>いつでも実験を中止することができます</li>
+                    <li>実験を中止しても不利益を被ることはありません</li>
+                </ul>
+
+                <h2 class="text-xl font-semibold">注意事項</h2>
+                <ul class="list-disc pl-6 space-y-1">
+                    <li>実験にはカメラを使用しますが、映像は保存されません</li>
+                    <li>体調が悪い場合は無理をせずに実験を中止してください</li>
+                    <li>疲労を感じた場合は適宜休憩を取ってください</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="bg-blue-900 rounded-lg p-4 mb-6">
+            <label class="flex items-center">
+                <input type="checkbox" id="consentCheck" class="mr-3 scale-125">
+                <span class="text-sm">
+                    上記の内容を理解し、実験への参加に同意します
+                </span>
+            </label>
+        </div>
+
+        <div class="flex justify-between">
+            <button 
+                onclick="goBack()"
+                class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200"
+            >
+                戻る
+            </button>
+            
+            <button 
+                id="agreeBtn"
+                onclick="proceedToAttributes()"
+                disabled
+                class="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200"
+            >
+                同意して次へ
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const consentCheck = document.getElementById('consentCheck');
+        const agreeBtn = document.getElementById('agreeBtn');
+
+        consentCheck.addEventListener('change', function() {
+            agreeBtn.disabled = !this.checked;
+        });
+
+        window.goBack = function() {
+            window.location.href = 'index.html';
+        };
+
+        window.proceedToAttributes = function() {
+            if (consentCheck.checked) {
+                // 条件順序が設定されているかチェック
+                const condOrder = localStorage.getItem('condOrder');
+                if (!condOrder) {
+                    // 設定されていない場合はindex.htmlに戻る
+                    alert('実験設定が見つかりません。最初からやり直してください。');
+                    window.location.href = 'index.html';
+                    return;
+                }
+                window.location.href = 'attributes.html';
+            }
+        };
+    </script>
+</body>
+</html>

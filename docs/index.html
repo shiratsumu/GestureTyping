@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>ジェスチャータイピング実験</title>
+    <link rel="icon" href="images/Gesture-icon.png">
+    <link rel="apple-touch-icon" href="images/Gesture-icon-180.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-800 text-white min-h-screen flex flex-col items-center justify-center p-4">
+    <div class="max-w-2xl mx-auto text-center">
+        <div class="mb-8">
+            <img src="images/Gesture-icon-192.png" alt="Gesture Typing Icon" class="mx-auto w-24 h-24 mb-4">
+            <h1 class="text-4xl font-bold mb-4">ジェスチャータイピング実験 v1.0</h1>
+            <p class="text-lg text-gray-300 leading-relaxed">
+                この実験では、手のジェスチャーと口の開閉を使った新しい文字入力方法を評価します。
+            </p>
+        </div>
+
+        <div class="bg-gray-700 rounded-lg p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">実験の流れ</h2>
+            <ol class="text-left text-gray-300 space-y-2">
+                <li>1. 同意事項の確認</li>
+                <li>2. 基本情報の入力</li>
+                <li>3. 練習セッション</li>
+                <li>4. 実験セッション（2つの入力方法）</li>
+                <li>5. 疲労度の評価</li>
+                <li>6. 好みの評価</li>
+            </ol>
+        </div>
+
+        <div class="text-sm text-gray-400 mb-8">
+            <p>所要時間: 約10-20分</p>
+            <p>実験は途中で中断することも可能です</p>
+        </div>
+
+        <button 
+            id="startBtn"
+            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-lg text-xl transition-colors duration-200"
+            onclick="startExperiment()"
+        >
+            実験を開始する
+        </button>
+    </div>
+
+    <script type="module">
+        import { logger } from './logger.js';
+        
+        window.startExperiment = function() {
+            // ユーザーIDをログに記録
+            console.log('Starting experiment for user:', logger.getUserId());
+            
+            // 条件の順序をランダムに決定
+            const condOrder = Math.random() < 0.5 ? ['A', 'B'] : ['B', 'A'];
+            localStorage.setItem('condOrder', JSON.stringify(condOrder));
+            localStorage.setItem('currentTrial', 'practice');   // 初期値
+            
+            console.log('Condition order set:', condOrder);
+            
+            // 同意ページに遷移
+            window.location.href = 'consent.html';
+        };
+    </script>
+</body>
+</html>

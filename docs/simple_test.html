@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple MediaPipe Test</title>
+</head>
+<body>
+    <h1>Simple MediaPipe Test</h1>
+    <div id="status">初期化中...</div>
+    <div id="error" style="color: red; display: none;"></div>
+    <button id="testBtn" disabled>Test Initialize</button>
+    
+    <main id="canvas-container" style="width: 640px; height: 480px; border: 1px solid black;"></main>
+    
+    <script src="./p5.js"></script>
+    <script type="module" src="sketch.js"></script>
+    
+    <script type="module">
+        console.log("Simple test script started");
+        
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log("DOM loaded");
+            
+            // sketch.jsの読み込み完了を待つ
+            let attempts = 0;
+            const maxAttempts = 50; // 5秒間
+            
+            const waitForSketch = () => {
+                return new Promise((resolve, reject) => {
+                    const checkInterval = setInterval(() => {
+                        attempts++;
+                        console.log(`Attempt ${attempts}: Checking for initializeLandmarkers...`, typeof initializeLandmarkers);
+                        
+                        if (typeof initializeLandmarkers !== 'undefined') {
+                            clearInterval(checkInterval);
+                            console.log("✓ initializeLandmarkers found!");
+                            resolve();
+                        } else if (attempts >= maxAttempts) {
+                            clearInterval(checkInterval);
+                            reject(new Error('initializeLandmarkers not found after 5 seconds'));
+                        }
+                    }, 100);
+                });
+            };
+            
+            try {
+                await waitForSketch();
+                document.getElementById('status').textContent = 'sketch.js loaded successfully';
+                document.getElementById('testBtn').disabled = false;
+                
+                // テストボタンのイベント
+                document.getElementById('testBtn').addEventListener('click', async () => {
+                    try {
+                        document.getElementById('status').textContent = 'Initializing MediaPipe...';
+                        await initializeLandmarkers();
+                        document.getElementById('status').textContent = 'MediaPipe initialized successfully!';
+                    } catch (error) {
+                        document.getElementById('error').style.display = 'block';
+                        document.getElementById('error').textContent = `Error: ${error.message}`;
+                        document.getElementById('status').textContent = 'MediaPipe initialization failed';
+                    }
+                });
+                
+            } catch (error) {
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('error').textContent = `Error: ${error.message}`;
+                document.getElementById('status').textContent = 'Failed to load sketch.js';
+            }
+        });
+    </script>
+</body>
+</html>
